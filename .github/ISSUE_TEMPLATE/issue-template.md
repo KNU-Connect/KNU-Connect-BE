@@ -1,6 +1,6 @@
 ---
-name: pado issue template
-about: This is pado issue template!
+name: issue template
+about: This is issue template!
 title: ''
 labels: ''
 assignees: ''
