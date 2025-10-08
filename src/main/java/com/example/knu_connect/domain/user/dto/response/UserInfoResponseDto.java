@@ -7,12 +7,6 @@ public record UserInfoResponseDto(
         @Schema(description = "이름", example = "홍길동")
         String name,
 
-        @Schema(description = "이메일", example = "user@knu.ac.kr")
-        String email,
-
-        @Schema(description = "비밀번호", example = "********")
-        String password,
-
         @Schema(description = "신분", example = "student", allowableValues = {"student", "graduate", "postgraduate", "professor"})
         String status,
 

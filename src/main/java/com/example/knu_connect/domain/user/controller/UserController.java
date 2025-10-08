@@ -38,8 +38,6 @@ public class UserController {
         // TODO: 내 정보 조회 로직 구현
         UserInfoResponseDto response = new UserInfoResponseDto(
                 "홍길동",
-                "user@knu.ac.kr",
-                "********",
                 "student",
                 "computer",
                 "employment",
