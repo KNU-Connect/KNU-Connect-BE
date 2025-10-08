@@ -1,0 +1,121 @@
+name: KNU-CONNECT BE CI/CD
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle (includes test)
+        run: ./gradlew build
+
+      - name: Build Docker image
+        run: |
+          docker build -t knu-connect-be:${{ github.sha }} .
+          docker save knu-connect-be:${{ github.sha }} > app.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app
+          path: app.tar
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: app
+
+      - name: Deploy to EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USERNAME }}
+          IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # Docker 이미지 전송
+          scp -i private_key.pem -o StrictHostKeyChecking=no app.tar ${USER}@${HOST}:/home/${USER}/
+
+          # 배포 스크립트 실행
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${USER}@${HOST} \
+            IMAGE_TAG="${IMAGE_TAG}" \
+            DB_HOST="${DB_HOST}" \
+            DB_PORT="${DB_PORT}" \
+            DB_NAME="${DB_NAME}" \
+            DB_USERNAME="${DB_USERNAME}" \
+            DB_PASSWORD="${DB_PASSWORD}" \
+            bash << 'EOF'
+            # Docker 이미지 로드
+            docker load < /home/${USER}/app.tar
+
+            # 기존 컨테이너 중지 및 삭제
+            docker stop knu-connect-be || true
+            docker rm knu-connect-be || true
+
+            # 새로운 컨테이너 실행
+            docker run -d \
+              --name knu-connect-be \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              -e DB_HOST="${DB_HOST}" \
+              -e DB_PORT="${DB_PORT}" \
+              -e DB_NAME="${DB_NAME}" \
+              -e DB_USERNAME="${DB_USERNAME}" \
+              -e DB_PASSWORD="${DB_PASSWORD}" \
+              knu-connect-be:${IMAGE_TAG}
+
+            # 헬스체크
+            echo "Waiting for application to start..."
+            for i in {1..30}; do
+              if docker ps | grep -q knu-connect-be; then
+                sleep 3
+                if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+                  echo "✅ Deployment successful! Application is healthy."
+                  # 정리 작업
+                  rm /home/${USER}/app.tar
+                  docker image prune -f
+                  exit 0
+                fi
+              fi
+              echo "Attempt $i/30: Container starting..."
+              sleep 2
+            done
+
+            echo "❌ Deployment failed - application not healthy"
+            docker logs knu-connect-be --tail 50
+            exit 1
+          EOF
+
+          rm private_key.pem
