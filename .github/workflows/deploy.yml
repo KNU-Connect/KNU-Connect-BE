@@ -69,7 +69,7 @@ jobs:
           scp -i private_key.pem -o StrictHostKeyChecking=no app.tar ${USER}@${HOST}:/home/${USER}/
 
           # 배포 스크립트 실행
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ${USER}@${HOST} \
+          ssh -i private_key.pem -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ${USER}@${HOST} \
             IMAGE_TAG="${IMAGE_TAG}" \
             DB_HOST="${DB_HOST}" \
             DB_PORT="${DB_PORT}" \
@@ -77,14 +77,17 @@ jobs:
             DB_USERNAME="${DB_USERNAME}" \
             DB_PASSWORD="${DB_PASSWORD}" \
             bash << 'EOF'
-            # Docker 이미지 로드
+            set -e  # 에러 발생 시 즉시 중단
+          
+            echo "=== Docker 이미지 로드 시작 ==="
             docker load < /home/${USER}/app.tar
+            echo "✅ Docker 이미지 로드 완료"
 
-            # 기존 컨테이너 중지 및 삭제
-            docker stop knu-connect-be || true
-            docker rm knu-connect-be || true
+            echo "=== 기존 컨테이너 정리 ==="
+            docker stop knu-connect-be 2>/dev/null || echo "기존 컨테이너 없음"
+            docker rm knu-connect-be 2>/dev/null || echo "삭제할 컨테이너 없음"
 
-            # 새로운 컨테이너 실행
+            echo "=== 새로운 컨테이너 실행 ==="
             docker run -d \
               --name knu-connect-be \
               --restart unless-stopped \
@@ -95,26 +98,42 @@ jobs:
               -e DB_USERNAME="${DB_USERNAME}" \
               -e DB_PASSWORD="${DB_PASSWORD}" \
               knu-connect-be:${IMAGE_TAG}
+          
+            echo "✅ 컨테이너 시작됨 (ID: $(docker ps -q -f name=knu-connect-be))"
 
-            # 헬스체크
-            echo "Waiting for application to start..."
+            echo "=== 컨테이너 로그 (최근 20줄) ==="
+            sleep 3
+            docker logs knu-connect-be --tail 20
+
+            echo "=== 헬스체크 시작 (최대 60초 대기) ==="
             for i in {1..30}; do
-              if docker ps | grep -q knu-connect-be; then
-                sleep 3
-                if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
-                  echo "✅ Deployment successful! Application is healthy."
-                  # 정리 작업
-                  rm /home/${USER}/app.tar
-                  docker image prune -f
-                  exit 0
-                fi
+              # 컨테이너 실행 여부 확인
+              if ! docker ps | grep -q knu-connect-be; then
+                echo "❌ 컨테이너가 중지되었습니다!"
+                docker logs knu-connect-be --tail 100
+                exit 1
               fi
-              echo "Attempt $i/30: Container starting..."
+          
+              # 헬스체크 시도
+              if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+                echo "✅ 헬스체크 성공! 애플리케이션이 정상 작동 중입니다."
+          
+                # 정리 작업
+                rm /home/${USER}/app.tar
+                docker image prune -f > /dev/null 2>&1
+          
+                echo "=== 배포 완료 ==="
+                docker ps | grep knu-connect-be
+                exit 0
+              fi
+          
+              echo "⏳ Attempt $i/30: 애플리케이션 시작 중..."
               sleep 2
             done
 
-            echo "❌ Deployment failed - application not healthy"
-            docker logs knu-connect-be --tail 50
+            echo "❌ 헬스체크 실패 - 애플리케이션이 60초 내에 시작하지 못했습니다."
+            echo "=== 전체 로그 출력 ==="
+            docker logs knu-connect-be
             exit 1
           EOF
 
