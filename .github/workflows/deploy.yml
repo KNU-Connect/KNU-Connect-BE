@@ -34,7 +34,7 @@ jobs:
           docker save knu-connect-be:${{ github.sha }} > app.tar
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app
           path: app.tar
@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: app
 
