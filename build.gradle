@@ -37,7 +37,13 @@ dependencies {
 	
 	// Swagger (SpringDoc OpenAPI)
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11'
-	
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// Email (JavaMailSender)
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 	// Database
 	runtimeOnly 'com.h2database:h2' // 개발 환경
 	runtimeOnly 'com.mysql:mysql-connector-j' // 운영 환경
