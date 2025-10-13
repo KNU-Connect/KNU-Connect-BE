@@ -44,6 +44,9 @@ dependencies {
 	// Email (JavaMailSender)
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+	// Thymeleaf
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
 	// Database
 	runtimeOnly 'com.h2database:h2' // 개발 환경
 	runtimeOnly 'com.mysql:mysql-connector-j' // 운영 환경

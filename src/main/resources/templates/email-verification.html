@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang = "ko">
+<head>
+    <meta charset="UTF-8">
+    <title>KNU-connect 이메일 인증</title>
+</head>
+<body>
+<div style="margin:100px;">
+    <h3> KNU-connect </h3>
+    <h1> 이메일 인증번호 안내 </h1>
+    <br>
+    <p> 본 메일은 KNU-connect의 회원가입을 위한 이메일 입니다.</p>
+    <p> 아래의 [이메일 인증번호]를 입력하여 본인확인을 해주시기 바랍니다.</p>
+    <br>
+    <div style="text-align:center; background-color: rgba(0, 0, 0, 0.08); font-family:verdana;">
+        <div style="font-size:130%" th:text="${code}"> </div>
+    </div>
+    <br/>
+</div>
+</body>
+</html>

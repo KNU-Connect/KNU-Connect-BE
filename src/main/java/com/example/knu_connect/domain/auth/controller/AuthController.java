@@ -6,6 +6,7 @@ import com.example.knu_connect.domain.auth.dto.request.LoginRequestDto;
 import com.example.knu_connect.domain.auth.dto.request.SignupRequestDto;
 import com.example.knu_connect.domain.auth.dto.response.EmailResponseDto;
 import com.example.knu_connect.domain.auth.dto.response.LoginResponseDto;
+import com.example.knu_connect.domain.auth.service.EmailService;
 import com.example.knu_connect.domain.auth.service.SignupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final SignupService signupService;
+    private final EmailService emailService;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다")
     @ApiResponses(value = {
@@ -106,7 +108,7 @@ public class AuthController {
     })
     @PostMapping("/email/send")
     public ResponseEntity<EmailResponseDto> sendEmailVerification(@Valid @RequestBody EmailSendRequestDto request) {
-        // TODO: 이메일 인증번호 전송 로직 구현
+        emailService.sendVerificationCode(request);
         EmailResponseDto response = new EmailResponseDto(true, "인증번호가 전송되었습니다");
         return ResponseEntity.ok(response);
     }
