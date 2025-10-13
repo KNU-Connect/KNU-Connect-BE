@@ -4,7 +4,7 @@ import com.example.knu_connect.domain.auth.dto.request.EmailSendRequestDto;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private final SpringTemplateEngine templateEngine;
 
     private static final long CODE_EXPIRE_MINUTES = 5; // 인증 번호 TTL(5분)
