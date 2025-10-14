@@ -1,6 +1,8 @@
 package com.example.knu_connect.domain.auth.service;
 
 import com.example.knu_connect.domain.auth.dto.request.EmailVerifyRequestDto;
+import com.example.knu_connect.global.exception.common.BusinessException;
+import com.example.knu_connect.global.exception.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -26,12 +28,12 @@ public class AuthService {
         String storedCode = redisTemplate.opsForValue().get(key);
 
         // 검증
-        if (storedCode == null) {   // 이메일이 일치하지 않거나 인증 시간이 만료된 이메일인 경우
-            throw new IllegalArgumentException("일치하지 않거나 인증 시간이 만료된 이메일입니다. 다시 요청해주세요.");
+        if (storedCode == null) {   // 이메일이 일치하지 않거나 인증 시간이 만료된 이메일인 경우 (잘못된 요청)
+            throw new BusinessException(ErrorCode.VERIFICATION_CODE_EXPIRED, "이메일이 일치하지 않거나 인증 번호가 만료되었습니다.");
         }
 
-        if (!storedCode.equals(inputCode)) {    // 인증번호가 일치하지 않을 경우
-            throw new IllegalArgumentException("인증번호가 일치하지 않습니다.");
+        if (!storedCode.equals(inputCode)) {    // 인증번호가 일치하지 않을 경우 (인증번호 불일치)
+            throw new BusinessException(ErrorCode.INVALID_VERIFICATION_CODE);
         }
 
         // 검증 완료
@@ -45,5 +47,10 @@ public class AuthService {
     // 이메일이 인증된 상태인지 확인 (회원가입 시 사용)
     public boolean isVerified(String email) {
         return Boolean.TRUE.equals(redisTemplate.hasKey("email:verified:" + email));
+    }
+
+    // redis에서 verified 키 삭제
+    public void clearVerifiedEmail(String email) {
+        redisTemplate.delete("email:verified:" + email);
     }
 }

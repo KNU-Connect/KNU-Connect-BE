@@ -1,6 +1,8 @@
 package com.example.knu_connect.domain.auth.service;
 
 import com.example.knu_connect.domain.auth.dto.request.EmailSendRequestDto;
+import com.example.knu_connect.global.exception.common.BusinessException;
+import com.example.knu_connect.global.exception.common.ErrorCode;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +49,10 @@ public class EmailService {
 
             // 메일 발송
             mailSender.send(mimeMessage);
-            log.info("인증 번호 메일 발송 완료: {}", email);
+            log.info("이메일 인증번호 전송 성공: {}", email);
         } catch (Exception e) {
-            log.error("메일 발송 또는 Redis 저장 실패", e);
-            throw new RuntimeException(e);
+            log.error("이메일 인증번호 전송 실패: {}", email, e);
+            throw new BusinessException(ErrorCode.EMAIL_SEND_FAILED);
         }
     }
 

@@ -3,14 +3,18 @@ package com.example.knu_connect.domain.auth.service;
 import com.example.knu_connect.domain.auth.dto.request.SignupRequestDto;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.domain.user.repository.UserRepository;
+import com.example.knu_connect.global.exception.common.BusinessException;
+import com.example.knu_connect.global.exception.common.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SignupService {
     private final UserRepository userRepository;
@@ -22,12 +26,12 @@ public class SignupService {
 
         // 이메일 인증 여부 확인
         if (!authService.isVerified(request.email())) {
-            throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다.");
+            throw new BusinessException(ErrorCode.EMAIL_NOT_VERIFIED);
         }
 
-        // 이메일 중복 체크
+        // 이메일 중복 체크 (이미 존재하는 이메일)
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         // 비밀번호 암호화
@@ -48,5 +52,9 @@ public class SignupService {
 
         // 저장
         userRepository.save(user);
+        log.info("회원가입 성공: {}", request.email());
+
+        // redis에서 인증 상태 삭제
+        authService.clearVerifiedEmail(request.email());
     }
 }
