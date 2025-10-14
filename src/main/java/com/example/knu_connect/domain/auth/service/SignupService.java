@@ -15,9 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class SignupService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
     @Transactional
     public void signup(SignupRequestDto request) {
+
+        // 이메일 인증 여부 확인
+        if (!authService.isVerified(request.email())) {
+            throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다.");
+        }
 
         // 이메일 중복 체크
         if (userRepository.existsByEmail(request.email())) {

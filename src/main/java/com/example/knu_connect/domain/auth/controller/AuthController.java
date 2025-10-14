@@ -6,6 +6,7 @@ import com.example.knu_connect.domain.auth.dto.request.LoginRequestDto;
 import com.example.knu_connect.domain.auth.dto.request.SignupRequestDto;
 import com.example.knu_connect.domain.auth.dto.response.EmailResponseDto;
 import com.example.knu_connect.domain.auth.dto.response.LoginResponseDto;
+import com.example.knu_connect.domain.auth.service.AuthService;
 import com.example.knu_connect.domain.auth.service.EmailService;
 import com.example.knu_connect.domain.auth.service.SignupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +29,7 @@ public class AuthController {
 
     private final SignupService signupService;
     private final EmailService emailService;
+    private final AuthService authService;
 
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다")
     @ApiResponses(value = {
@@ -124,7 +126,7 @@ public class AuthController {
     })
     @PostMapping("/email/verify")
     public ResponseEntity<EmailResponseDto> verifyEmail(@Valid @RequestBody EmailVerifyRequestDto request) {
-        // TODO: 이메일 인증번호 확인 로직 구현
+        authService.verifyCode(request);
         EmailResponseDto response = new EmailResponseDto(true, "이메일 인증이 완료되었습니다");
         return ResponseEntity.ok(response);
     }
