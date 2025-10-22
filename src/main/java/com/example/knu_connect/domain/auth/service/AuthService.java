@@ -19,6 +19,8 @@ public class AuthService {
     private final StringRedisTemplate redisTemplate;
     private static final long VERIFIED_TTL_MINUTES = 60; // 인증완료 상태 유지시간 (1시간)
 
+    // 이메일 검증 관련
+    // 이메일 코드 검증
     public void verifyCode(EmailVerifyRequestDto requestDto) {
         // request로 받은 정보
         String email = requestDto.email();
@@ -61,4 +63,8 @@ public class AuthService {
     public void clearVerifiedEmail(String email) {
         redisTemplate.delete("email:verified:" + email);
     }
+
+    // 로그인 관련
+    // 로그인 요청 처리
+
 }
