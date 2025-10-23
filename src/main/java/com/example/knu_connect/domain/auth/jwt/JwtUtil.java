@@ -17,9 +17,9 @@ public class JwtUtil {
     private final long accessExp;   // 엑세스 토큰 유효시간
     private final long refreshExp;  // 리프레시 토큰 유효시간
 
-    public JwtUtil(@Value("${spring.jwt.secret") String secret,
-                   @Value("$(spring.jwt.access-token-expiration") long accessExp,
-                   @Value("$(spring.jwt.refresh-token-expiration") long refreshExp) {
+    public JwtUtil(@Value("${spring.jwt.secret}") String secret,
+                   @Value("${spring.jwt.access-token-expiration}") long accessExp,
+                   @Value("${spring.jwt.refresh-token-expiration}") long refreshExp) {
         byte[] keyBytes = Base64.getDecoder().decode(secret);
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.accessExp = accessExp;
@@ -27,17 +27,17 @@ public class JwtUtil {
     }
 
     // 토큰 생성 (access, refresh)
-    public String createAccessToken(String username) {  // 엑세스 토큰 생성
-        return createJwt(username, accessExp);
+    public String createAccessToken(String email) {  // 엑세스 토큰 생성
+        return createJwt(email, accessExp);
     }
 
-    public String createRefreshToken(String username) { // 리프레시 토큰 생성
-        return createJwt(username, refreshExp);
+    public String createRefreshToken(String email) { // 리프레시 토큰 생성
+        return createJwt(email, refreshExp);
     }
 
-    public String createJwt(String username, long exp) {
+    public String createJwt(String email, long exp) {
         return Jwts.builder()
-                .subject(username)
+                .subject(email)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + exp * 1000L))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -45,7 +45,7 @@ public class JwtUtil {
     }
 
     // get 메서드 + 유효성 검사도 같이
-    public String getUsername(String token) {
+    public String getEmail(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
