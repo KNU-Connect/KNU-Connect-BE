@@ -6,6 +6,7 @@ import com.example.knu_connect.domain.auth.dto.request.LoginRequestDto;
 import com.example.knu_connect.domain.auth.dto.request.SignupRequestDto;
 import com.example.knu_connect.domain.auth.dto.response.EmailResponseDto;
 import com.example.knu_connect.domain.auth.dto.response.LoginResponseDto;
+import com.example.knu_connect.domain.auth.dto.response.TokenWithRefreshResponseDto;
 import com.example.knu_connect.domain.auth.service.AuthService;
 import com.example.knu_connect.domain.auth.service.EmailService;
 import com.example.knu_connect.domain.auth.service.SignupService;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -55,10 +57,16 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content)
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
-        // TODO: 로그인 로직 구현
-        LoginResponseDto response = new LoginResponseDto("sample_token");
-        return ResponseEntity.ok(response);
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request, HttpServletResponse response) {
+        // 서비스에서 access + refresh 토큰 2개 받음
+        TokenWithRefreshResponseDto tokens = authService.login(request);
+
+        // 서비스에서 만든 Set-Cookie 헤더 문자열을 받아서 응답 헤더에 추가
+        String setCookieValue = authService.formatRefreshTokenCookie(tokens.refreshToken());
+        response.addHeader("Set-Cookie", setCookieValue);
+
+        // Access token만 본문으로 반환
+        return ResponseEntity.ok(new LoginResponseDto(tokens.accessToken()));
     }
 
     @Operation(
