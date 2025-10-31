@@ -97,11 +97,17 @@ jobs:
               --name knu-connect-be \
               --restart unless-stopped \
               -p 8080:8080 \
+              --network knu-connect-prod-net \
+              -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_HOST="${DB_HOST}" \
               -e DB_PORT="${DB_PORT}" \
               -e DB_NAME="${DB_NAME}" \
               -e DB_USERNAME="${DB_USERNAME}" \
               -e DB_PASSWORD="${DB_PASSWORD}" \
+              -e REDIS_HOST="knu-connect-redis-prod" \
+              -e REDIS_PORT="6379" \
+              -e MAIL_USERNAME="${MAIL_USERNAME}" \
+              -e MAIL_PASSWORD="${MAIL_PASSWORD}" \
               knu-connect-be:${IMAGE_TAG}
           
             echo "✅ 컨테이너 시작됨 (ID: $(docker ps -q -f name=knu-connect-be))"

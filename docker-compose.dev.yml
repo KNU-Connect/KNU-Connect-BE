@@ -1,0 +1,27 @@
+version: "3.9"
+
+networks:
+  knu-connect-net:
+    driver: bridge
+
+services:
+  app:
+    container_name: knu-connect-app-dev
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATA_REDIS_HOST=redis
+    networks:
+      - knu-connect-net
+    depends_on:
+      - redis
+
+  redis:
+    container_name: knu-connect-redis-dev
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - knu-connect-net
