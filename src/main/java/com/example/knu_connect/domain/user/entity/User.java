@@ -1,16 +1,14 @@
 package com.example.knu_connect.domain.user.entity;
 
+import com.example.knu_connect.domain.user.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
-@Table(name = "users")
 @Entity
-@Getter @Builder
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-public class User {
+@Table(name = "users")
+public class User extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;  // 유저 아이디 (PK)
@@ -24,20 +22,25 @@ public class User {
     @Column(name = "password", nullable = false, length = 255)
     private String password;  // 비밀번호
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 255)
-    private String status;  // 재학 구분
+    private Status status;  // 재학 구분
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "department", nullable = false, length = 255)
-    private String department;  // 학과
+    private Department department;  // 학과
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "career", nullable = false, length = 255)
-    private String career;  // 진로
+    private Career career;  // 진로
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "interest", nullable = false, length = 255)
-    private String interest;  // 관심분야
+    private Interest interest;  // 관심분야
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "mbti", nullable = false, length = 255)
-    private String mbti;  // MBTI
+    private Mbti mbti;  // MBTI
 
     @Column(name = "mentor", nullable = false)
     private boolean mentor;  // 멘토 여부
@@ -48,22 +51,17 @@ public class User {
     @Column(name = "detail_introduction", length = 1000)
     private String detailIntroduction;  // 상세 소개
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;  // 수정일자
-
-
-    @PrePersist
-    protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+    @Builder
+    public User(String name, String email, String password, Status status, Department department,
+                Career career, Interest interest, Mbti mbti, boolean mentor) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.status = status;
+        this.department = department;
+        this.career = career;
+        this.interest = interest;
+        this.mbti = mbti;
+        this.mentor = mentor;
     }
 }

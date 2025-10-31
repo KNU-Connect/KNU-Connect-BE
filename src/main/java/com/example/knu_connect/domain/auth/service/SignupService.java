@@ -2,6 +2,7 @@ package com.example.knu_connect.domain.auth.service;
 
 import com.example.knu_connect.domain.auth.dto.request.SignupRequestDto;
 import com.example.knu_connect.domain.user.entity.User;
+import com.example.knu_connect.domain.user.enums.*;
 import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
@@ -42,11 +43,11 @@ public class SignupService {
                 .name(request.name())
                 .email(request.email())
                 .password(encodedPassword)
-                .department(request.department())
-                .status(request.status())
-                .career(request.career())
-                .interest(request.interest())
-                .mbti(request.mbti())
+                .department(Department.valueOf(request.department()))
+                .status(Status.valueOf(request.status()))
+                .career(Career.valueOf(request.career()))
+                .interest(Interest.valueOf(request.interest()))
+                .mbti(Mbti.valueOf(request.mbti()))
                 .mentor(request.mentor())
                 .build();
 

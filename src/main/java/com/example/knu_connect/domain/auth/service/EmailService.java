@@ -3,10 +3,13 @@ package com.example.knu_connect.domain.auth.service;
 import com.example.knu_connect.domain.auth.dto.request.EmailSendRequestDto;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -50,9 +53,15 @@ public class EmailService {
             // 메일 발송
             mailSender.send(mimeMessage);
             log.info("이메일 인증번호 전송 성공: {}", email);
-        } catch (Exception e) {
-            log.error("이메일 인증번호 전송 실패: {}", email, e);
+        } catch (MailSendException e) {
+            log.error("메일 전송 실패: {}", email, e);
             throw new BusinessException(ErrorCode.EMAIL_SEND_FAILED);
+        } catch (MessagingException e) {
+            log.error("메일 구성 실패: {}", email, e);
+            throw new BusinessException(ErrorCode.EMAIL_BUILD_FAILED);
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis 연결 실패", e);
+            throw new BusinessException(ErrorCode.REDIS_CONNECTION_FAILED);
         }
     }
 

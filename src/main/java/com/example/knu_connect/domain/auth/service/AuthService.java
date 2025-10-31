@@ -5,6 +5,7 @@ import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -38,8 +39,15 @@ public class AuthService {
 
         // 검증 완료
         redisTemplate.delete(key); // 기존 코드 삭제
-        redisTemplate.opsForValue() // redis에 검증된 이메일 저장
-                .set("email:verified:" + email, "true", VERIFIED_TTL_MINUTES, TimeUnit.MINUTES);
+
+        try {
+            redisTemplate.opsForValue() // redis에 검증된 이메일 저장
+                    .set("email:verified:" + email, "true", VERIFIED_TTL_MINUTES, TimeUnit.MINUTES);
+        } catch (RedisConnectionFailureException e) {
+            log.error("Redis 연결 실패", e);
+            throw new BusinessException(ErrorCode.REDIS_CONNECTION_FAILED);
+        }
+
 
         log.info("이메일 인증 완료: {}", email);
     }
