@@ -6,6 +6,9 @@ import com.example.knu_connect.domain.auth.dto.request.LoginRequestDto;
 import com.example.knu_connect.domain.auth.dto.request.SignupRequestDto;
 import com.example.knu_connect.domain.auth.dto.response.EmailResponseDto;
 import com.example.knu_connect.domain.auth.dto.response.LoginResponseDto;
+import com.example.knu_connect.domain.auth.service.AuthService;
+import com.example.knu_connect.domain.auth.service.EmailService;
+import com.example.knu_connect.domain.auth.service.SignupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,6 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,16 +28,20 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private final SignupService signupService;
+    private final EmailService emailService;
+    private final AuthService authService;
+
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "회원가입 성공"),
+            @ApiResponse(responseCode = "201", description = "회원가입 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
             @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일", content = @Content)
     })
     @PostMapping("/signup")
     public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequestDto request) {
-        // TODO: 회원가입 로직 구현
-        return ResponseEntity.ok().build();
+        signupService.signup(request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인합니다")
@@ -103,7 +111,7 @@ public class AuthController {
     })
     @PostMapping("/email/send")
     public ResponseEntity<EmailResponseDto> sendEmailVerification(@Valid @RequestBody EmailSendRequestDto request) {
-        // TODO: 이메일 인증번호 전송 로직 구현
+        emailService.sendVerificationCode(request);
         EmailResponseDto response = new EmailResponseDto(true, "인증번호가 전송되었습니다");
         return ResponseEntity.ok(response);
     }
@@ -119,7 +127,7 @@ public class AuthController {
     })
     @PostMapping("/email/verify")
     public ResponseEntity<EmailResponseDto> verifyEmail(@Valid @RequestBody EmailVerifyRequestDto request) {
-        // TODO: 이메일 인증번호 확인 로직 구현
+        authService.verifyCode(request);
         EmailResponseDto response = new EmailResponseDto(true, "이메일 인증이 완료되었습니다");
         return ResponseEntity.ok(response);
     }
