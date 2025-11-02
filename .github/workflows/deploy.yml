@@ -81,6 +81,8 @@ jobs:
             DB_NAME="${DB_NAME}" \
             DB_USERNAME="${DB_USERNAME}" \
             DB_PASSWORD="${DB_PASSWORD}" \
+            MAIL_USERNAME="${MAIL_USERNAME}" \
+            MAIL_PASSWORD="${MAIL_PASSWORD}" \
             bash << 'EOF'
             set -e  # 에러 발생 시 즉시 중단
           
