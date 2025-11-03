@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,15 +59,17 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request, HttpServletResponse response) {
-        // 서비스에서 access + refresh 토큰 2개 받음
+        // 로그인 요청 처리하고 Access/Refresh Token 발급
         TokenWithRefreshResponseDto tokens = authService.login(request);
 
-        // 서비스에서 만든 Set-Cookie 헤더 문자열을 받아서 응답 헤더에 추가
+        // Refresh Token을 쿠키(Set-Cookie 헤더) 형식의 문자열로 반환
         String setCookieValue = authService.formatRefreshTokenCookie(tokens.refreshToken());
-        response.addHeader("Set-Cookie", setCookieValue);
 
-        // Access token만 본문으로 반환
-        return ResponseEntity.ok(new LoginResponseDto(tokens.accessToken()));
+        // Access Token은 본문으로, Refresh Token은 쿠키로 반환
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, setCookieValue)
+                .body(new LoginResponseDto(tokens.accessToken()));
     }
 
     @Operation(
