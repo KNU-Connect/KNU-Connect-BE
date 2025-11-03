@@ -1,6 +1,7 @@
 package com.example.knu_connect.domain.auth.jwt;
 
 import com.example.knu_connect.domain.user.entity.User;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+@Getter
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
@@ -19,9 +21,6 @@ public class CustomUserDetails implements UserDetails {
         return List.of();
     }
 
-    public User getUser() {
-        return this.user;
-    }
     @Override
     public String getPassword() {
         return user.getPassword();
