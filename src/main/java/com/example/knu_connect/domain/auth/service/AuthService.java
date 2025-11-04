@@ -6,7 +6,6 @@ import com.example.knu_connect.domain.auth.dto.response.TokenWithRefreshResponse
 import com.example.knu_connect.domain.auth.jwt.CustomUserDetails;
 import com.example.knu_connect.domain.auth.jwt.JwtUtil;
 import com.example.knu_connect.domain.user.entity.User;
-import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -32,8 +30,6 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private static final long VERIFIED_TTL_MINUTES = 60; // 인증완료 상태 유지시간 (1시간)
     private static final long REFRESH_TTL_MINUTES = 10080; // 리프레시 토큰 유지시간 (7일)
-    private final PasswordEncoder passwordEncoder;
-    private final UserRepository userRepository;
 
     // 이메일 검증 관련
     // 이메일 코드 검증

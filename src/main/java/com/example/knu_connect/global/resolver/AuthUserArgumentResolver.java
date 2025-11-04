@@ -38,9 +38,10 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
 
         Object principal = authentication.getPrincipal();
 
-        if (principal instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getUser();
+        if (!(principal instanceof CustomUserDetails customUserDetails)) {
+            throw new BusinessException(ErrorCode.INVALID_AUTH_PRINCIPAL);
         }
-        return null;
+
+        return customUserDetails.getUser();
     }
 }
