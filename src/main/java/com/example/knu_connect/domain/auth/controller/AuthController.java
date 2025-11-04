@@ -6,6 +6,7 @@ import com.example.knu_connect.domain.auth.dto.request.LoginRequestDto;
 import com.example.knu_connect.domain.auth.dto.request.SignupRequestDto;
 import com.example.knu_connect.domain.auth.dto.response.EmailResponseDto;
 import com.example.knu_connect.domain.auth.dto.response.LoginResponseDto;
+import com.example.knu_connect.domain.auth.dto.response.TokenWithRefreshResponseDto;
 import com.example.knu_connect.domain.auth.service.AuthService;
 import com.example.knu_connect.domain.auth.service.EmailService;
 import com.example.knu_connect.domain.auth.service.SignupService;
@@ -16,8 +17,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,10 +58,18 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content)
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
-        // TODO: 로그인 로직 구현
-        LoginResponseDto response = new LoginResponseDto("sample_token");
-        return ResponseEntity.ok(response);
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request, HttpServletResponse response) {
+        // 로그인 요청 처리하고 Access/Refresh Token 발급
+        TokenWithRefreshResponseDto tokens = authService.login(request);
+
+        // Refresh Token을 쿠키(Set-Cookie 헤더) 형식의 문자열로 반환
+        String setCookieValue = authService.formatRefreshTokenCookie(tokens.refreshToken());
+
+        // Access Token은 본문으로, Refresh Token은 쿠키로 반환
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, setCookieValue)
+                .body(new LoginResponseDto(tokens.accessToken()));
     }
 
     @Operation(
