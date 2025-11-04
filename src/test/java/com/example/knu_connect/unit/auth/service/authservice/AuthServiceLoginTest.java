@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.*;
 public class AuthServiceLoginTest {
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtUtil jwtUtil;
-    @Mock private RedisTemplate<String, String> redisTemplate;
+    @Mock private StringRedisTemplate redisTemplate;
 
     @InjectMocks private AuthService authService;
 
