@@ -66,7 +66,7 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}g
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           JWT_ACCESS_TOKEN_EXPIRATION: ${{ secrets.JWT_ACCESS_TOKEN_EXPIRATION }}
           JWT_REFRESH_TOKEN_EXPIRATION: ${{ secrets.JWT_REFRESH_TOKEN_EXPIRATION }}
         run: |
@@ -86,6 +86,9 @@ jobs:
             DB_PASSWORD="${DB_PASSWORD}" \
             MAIL_USERNAME="${MAIL_USERNAME}" \
             MAIL_PASSWORD="${MAIL_PASSWORD}" \
+            JWT_SECRET_KEY="${JWT_SECRET_KEY}" \
+            JWT_ACCESS_TOKEN_EXPIRATION="${JWT_ACCESS_TOKEN_EXPIRATION}" \
+            JWT_REFRESH_TOKEN_EXPIRATION="${JWT_REFRESH_TOKEN_EXPIRATION}" \
             bash << 'EOF'
             set -e  # 에러 발생 시 즉시 중단
           
@@ -113,6 +116,9 @@ jobs:
               -e REDIS_PORT="6379" \
               -e MAIL_USERNAME="${MAIL_USERNAME}" \
               -e MAIL_PASSWORD="${MAIL_PASSWORD}" \
+              -e JWT_SECRET_KEY="${JWT_SECRET_KEY}" \
+              -e JWT_ACCESS_TOKEN_EXPIRATION="${JWT_ACCESS_TOKEN_EXPIRATION}" \
+              -e JWT_REFRESH_TOKEN_EXPIRATION="${JWT_REFRESH_TOKEN_EXPIRATION}" \
               knu-connect-be:${IMAGE_TAG}
           
             echo "✅ 컨테이너 시작됨 (ID: $(docker ps -q -f name=knu-connect-be))"
