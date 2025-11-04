@@ -1,4 +1,4 @@
-package com.example.knu_connect.unit.auth.service;
+package com.example.knu_connect.unit.auth.service.authservice;
 
 import com.example.knu_connect.domain.auth.dto.request.EmailVerifyRequestDto;
 import com.example.knu_connect.domain.auth.service.AuthService;
@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceTest {
+class AuthServiceSignupTest {
     @Mock private StringRedisTemplate redisTemplate;
     @InjectMocks private AuthService authService;
 
