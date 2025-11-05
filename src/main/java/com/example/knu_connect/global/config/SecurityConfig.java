@@ -1,6 +1,6 @@
-package com.example.knu_connect.domain.auth.config;
+package com.example.knu_connect.global.config;
 
-import com.example.knu_connect.domain.auth.jwt.JwtAuthenticationFilter;
+import com.example.knu_connect.global.auth.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

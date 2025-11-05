@@ -1,4 +1,4 @@
-package com.example.knu_connect.domain.auth.jwt;
+package com.example.knu_connect.global.auth.jwt;
 
 import com.example.knu_connect.domain.user.entity.User;
 import lombok.Getter;

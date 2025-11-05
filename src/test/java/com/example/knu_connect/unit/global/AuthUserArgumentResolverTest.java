@@ -1,6 +1,6 @@
 package com.example.knu_connect.unit.global;
 
-import com.example.knu_connect.domain.auth.jwt.CustomUserDetails;
+import com.example.knu_connect.global.auth.jwt.CustomUserDetails;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.global.annotation.AuthUser;
 import com.example.knu_connect.global.exception.common.BusinessException;

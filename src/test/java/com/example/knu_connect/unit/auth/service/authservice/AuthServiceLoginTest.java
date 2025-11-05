@@ -2,8 +2,8 @@ package com.example.knu_connect.unit.auth.service.authservice;
 
 import com.example.knu_connect.domain.auth.dto.request.LoginRequestDto;
 import com.example.knu_connect.domain.auth.dto.response.TokenWithRefreshResponseDto;
-import com.example.knu_connect.domain.auth.jwt.CustomUserDetails;
-import com.example.knu_connect.domain.auth.jwt.JwtUtil;
+import com.example.knu_connect.global.auth.jwt.CustomUserDetails;
+import com.example.knu_connect.global.auth.jwt.JwtUtil;
 import com.example.knu_connect.domain.auth.service.AuthService;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.global.exception.common.BusinessException;
@@ -14,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.AuthenticationManager;
