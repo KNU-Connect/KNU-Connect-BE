@@ -1,10 +1,12 @@
 package com.example.knu_connect.global.auth.jwt;
 
+import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
 import com.example.knu_connect.global.exception.dto.ErrorResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -47,8 +49,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 토큰 추출
         String accessToken = header.split(" ")[1];
         try {
-            // 토큰 검증 및 이메일 추출
-            String email = jwtUtil.getEmail(accessToken);
+            // 토큰 파싱하여 claim 가지고 오기
+            Claims claims = jwtUtil.getClaims(accessToken);
+            String tokenType = claims.get(JwtUtil.TOKEN_TYPE_CLAIM, String.class);
+
+            // 액세스 토큰인지 확인
+            if (!JwtUtil.ACCESS_TOKEN_TYPE.equals(tokenType)) {
+                throw new BusinessException(ErrorCode.INVALID_TOKEN_TYPE);
+            }
+
+            // 이메일 추출
+            String email = claims.getSubject();
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername(email);
