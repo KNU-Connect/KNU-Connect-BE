@@ -1,6 +1,6 @@
 package com.example.knu_connect.domain.user.entity;
 
-import com.example.knu_connect.domain.user.enums.*;
+import com.example.knu_connect.domain.user.entity.enums.*;
 import jakarta.persistence.*;
 import lombok.*;
 

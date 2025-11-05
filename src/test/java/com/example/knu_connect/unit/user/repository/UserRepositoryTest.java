@@ -1,7 +1,7 @@
 package com.example.knu_connect.unit.user.repository;
 
 import com.example.knu_connect.domain.user.entity.User;
-import com.example.knu_connect.domain.user.enums.*;
+import com.example.knu_connect.domain.user.entity.enums.*;
 import com.example.knu_connect.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
