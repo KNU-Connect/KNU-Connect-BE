@@ -1,6 +1,6 @@
 package com.example.knu_connect.unit.auth.jwt;
 
-import com.example.knu_connect.domain.auth.jwt.JwtUtil;
+import com.example.knu_connect.global.auth.jwt.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;

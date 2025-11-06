@@ -1,7 +1,7 @@
 package com.example.knu_connect.unit.auth.jwt;
 
-import com.example.knu_connect.domain.auth.jwt.CustomUserDetails;
-import com.example.knu_connect.domain.auth.jwt.CustomUserDetailsService;
+import com.example.knu_connect.global.auth.jwt.CustomUserDetails;
+import com.example.knu_connect.global.auth.jwt.CustomUserDetailsService;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;

@@ -2,7 +2,7 @@ package com.example.knu_connect.domain.auth.service;
 
 import com.example.knu_connect.domain.auth.dto.request.SignupRequestDto;
 import com.example.knu_connect.domain.user.entity.User;
-import com.example.knu_connect.domain.user.enums.*;
+import com.example.knu_connect.domain.user.entity.enums.*;
 import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
