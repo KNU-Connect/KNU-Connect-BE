@@ -1,9 +1,7 @@
-package com.example.knu_connect.domain.user.entity;
+package com.example.knu_connect.domain.basetime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import org.springframework.data.annotation.LastModifiedDate;
 
