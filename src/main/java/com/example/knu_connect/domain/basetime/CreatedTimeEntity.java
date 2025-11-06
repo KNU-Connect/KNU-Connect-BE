@@ -1,4 +1,4 @@
-package com.example.knu_connect.domain.user.entity;
+package com.example.knu_connect.domain.basetime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
