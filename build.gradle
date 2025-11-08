@@ -55,11 +55,17 @@ dependencies {
 	// Database
 	runtimeOnly 'com.h2database:h2' // 개발 환경
 	runtimeOnly 'com.mysql:mysql-connector-j' // 운영 환경
-	
+
+	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// WebSocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 }
 
 tasks.named('test') {
