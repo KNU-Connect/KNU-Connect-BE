@@ -4,6 +4,7 @@ import com.example.knu_connect.domain.mentor.dto.response.MentorDetailResponseDt
 import com.example.knu_connect.domain.mentor.dto.response.MentorListResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,17 +33,19 @@ public class MentorController {
                     content = @Content(schema = @Schema(implementation = MentorListResponseDto.class))
             )
     })
+    @Parameters({
+            @Parameter(description = "진로 필터", example = "employment", schema = @Schema(allowableValues = {"employment", "startup", "matriculation"})),
+            @Parameter(description = "관심 분야 필터", example = "backend", schema = @Schema(allowableValues = {"frontend", "backend", "data", "ai", "security"})),
+            @Parameter(description = "검색 키워드", example = "백엔드"),
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0"),
+            @Parameter(description = "페이지 크기", example = "10")
+    })
     @GetMapping
     public ResponseEntity<MentorListResponseDto> getMentorList(
-            @Parameter(description = "진로 필터", example = "employment", schema = @Schema(allowableValues = {"employment", "startup", "matriculation"}))
             @RequestParam(required = false) String career,
-            @Parameter(description = "관심 분야 필터", example = "backend", schema = @Schema(allowableValues = {"frontend", "backend", "data", "ai", "security"}))
             @RequestParam(required = false) String interest,
-            @Parameter(description = "검색 키워드", example = "백엔드")
             @RequestParam(required = false) String keyword,
-            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
             @RequestParam(defaultValue = "0") Integer page,
-            @Parameter(description = "페이지 크기", example = "10")
             @RequestParam(defaultValue = "10") Integer size
     ) {
         // TODO: 멘토 목록 조회 로직 구현
