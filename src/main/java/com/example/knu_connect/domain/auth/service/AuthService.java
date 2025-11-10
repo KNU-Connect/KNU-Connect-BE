@@ -12,12 +12,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -38,7 +41,7 @@ public class AuthService {
         String email = requestDto.email();
         String inputCode = requestDto.verificationCode();
 
-        // redis에서 해당 이메일의 code 가져오기
+        // Redis에서 해당 이메일의 code 가져오기
         String key = "email:verify:" + email;
         String storedCode = redisTemplate.opsForValue().get(key);
 
@@ -71,7 +74,7 @@ public class AuthService {
         return Boolean.TRUE.equals(redisTemplate.hasKey("email:verified:" + email));
     }
 
-    // redis에서 verified 키 삭제
+    // Redis에서 verified 키 삭제
     public void clearVerifiedEmail(String email) {
         redisTemplate.delete("email:verified:" + email);
     }
@@ -100,7 +103,7 @@ public class AuthService {
         String accessToken = jwtUtil.createAccessToken(email);
         String refreshToken = jwtUtil.createRefreshToken(email);
 
-        // Redis에 Refresh 토큰 저장
+        // Redis에 Refresh Token 저장
         String key = "email:refresh:" + email;
         redisTemplate.opsForValue().set(key, refreshToken, REFRESH_TTL_MINUTES, TimeUnit.MINUTES);
 
@@ -108,12 +111,49 @@ public class AuthService {
         return new TokenWithRefreshResponseDto(accessToken, refreshToken);
     }
 
+    // 로그인 시 Refresh Token 쿠키 생성
     public String formatRefreshTokenCookie(String refreshToken) {
-        String name = "refresh_token";
-        String value = refreshToken;
-        String path = "/api/auth/refresh";
-        int maxAge = 604800;  // 7일(초)
-        return String.format("%s=%s; Path=%s; Max-Age=%d; Secure; HttpOnly; SameSite=Lax",
-                name, value, path, maxAge);
+        return ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/api/auth/refresh")
+                .maxAge(Duration.ofDays(7))      // 즉시 만료
+                .build()
+                .toString();
+    }
+
+    // 로그아웃 관련
+    // 로그아웃 요청 처리
+    public void logout(String accessToken) {
+
+        // 토큰 남은 유효 시간
+        long exp = jwtUtil.getExpiration(accessToken) - System.currentTimeMillis();
+        if (exp < 0) exp = 0;
+
+        // 인증 정보에서 이메일 추출
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String email = userDetails.getUsername();
+
+        // Redis에 블랙리스트로 Access Token 저장
+        String key = "email:blacklist:" + email;
+        redisTemplate.opsForValue().set(key, accessToken, exp, TimeUnit.MILLISECONDS);
+
+        // Redis에 Refresh Token 삭제
+        String refreshKey = "email:refresh:" + email;
+        redisTemplate.delete(refreshKey);
+    }
+
+    // 로그아웃 시 Refresh Token 쿠키 삭제 (만료 쿠키 전송)
+    public String formatClearRefreshTokenCookie() {
+        return ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/api/auth/refresh")
+                .maxAge(0)      // 즉시 만료
+                .build()
+                .toString();
     }
 }

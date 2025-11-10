@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -116,10 +117,17 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content)
     })
     @DeleteMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        // TODO: 로그아웃 로직 구현
-        // 일반적으로 Redis 등에 저장된 Refresh Token을 삭제하거나 블랙리스트에 추가
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        // Redis에 Access Token 블랙리스트 등록 및 Refresh Token 삭제 처리
+        String accessToken = request.getHeader("Authorization").split(" ")[1];
+        authService.logout(accessToken);
+
+        // Refresh Token 쿠키를 무효화(삭제용 Set-Cookie 헤더 생성)
+        String clearCookieValue = authService.formatClearRefreshTokenCookie();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clearCookieValue)
+                .build();
     }
 
     @Operation(summary = "이메일 인증번호 전송", description = "입력한 이메일로 인증번호를 전송합니다")

@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final String[] allowedUrls = {"/h2-console/**", "/swagger-ui/**", "/api-docs/**", "/actuator/health",
+    public static final String[] ALLOWED_URLS = {"/h2-console/**", "/swagger-ui/**", "/api-docs/**", "/actuator/health",
             "/api/auth/signup", "/api/auth/login", "/api/auth/email/**", "/api/auth/refresh",
             "/ws/**", "/chat-test.html"}; // 인증 없이 허용할 url 목록
 
@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable) // 기본 로그인폼 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable) // HTTP Basic 인증 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(allowedUrls).permitAll()
+                        .requestMatchers(ALLOWED_URLS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)) // h2 콘솔은 iframe 허용
