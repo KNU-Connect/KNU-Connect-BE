@@ -2,12 +2,15 @@ package com.example.knu_connect.domain.auth.service;
 
 import com.example.knu_connect.domain.auth.dto.request.EmailVerifyRequestDto;
 import com.example.knu_connect.domain.auth.dto.request.LoginRequestDto;
+import com.example.knu_connect.domain.auth.dto.response.LoginResponseDto;
 import com.example.knu_connect.domain.auth.dto.response.TokenWithRefreshResponseDto;
 import com.example.knu_connect.global.auth.jwt.CustomUserDetails;
 import com.example.knu_connect.global.auth.jwt.JwtUtil;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -155,5 +158,48 @@ public class AuthService {
                 .maxAge(0)      // 즉시 만료
                 .build()
                 .toString();
+    }
+
+    // 인증 토큰 재발급 관련
+    // Access Token 재발급
+    public LoginResponseDto reissueToken(String refreshToken) {
+        String email;
+        String tokenType;
+
+        if (refreshToken == null || refreshToken.isBlank()) {
+            refreshToken = "invalidToken";
+        }
+
+        // refreshToken 유효성 검사 및 정보 추출
+        try {
+            email = jwtUtil.getEmail(refreshToken);
+            tokenType = jwtUtil.getTokenType(refreshToken);
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 토큰 요청");
+            throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
+        } catch (JwtException e) {
+            log.warn("유효하지 않은 토큰 요청");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 토큰 타입 확인
+        if (!JwtUtil.REFRESH_TOKEN_TYPE.equals(tokenType)) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN_TYPE);
+        }
+
+        // Redis 저장값과 비교
+        String key = "email:refresh:" + email;
+        String storedToken = redisTemplate.opsForValue().get(key);
+
+        if (storedToken == null || !storedToken.equals(refreshToken)) {
+            log.info("Redis의 refreshToken이 없거나 불일치: email={}", email);
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "만료되었거나 유효하지 않은 토큰입니다.");
+        }
+
+        // AccessToken 재발급
+        String newAccessToken = jwtUtil.createAccessToken(email);
+        log.info("AccessToken 재발급 성공: email={}", email);
+
+        return new LoginResponseDto(newAccessToken);
     }
 }

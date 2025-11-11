@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -100,10 +101,23 @@ public class AuthController {
             @ApiResponse(responseCode = "403", description = "만료된 Refresh Token", content = @Content)
     })
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponseDto> refreshToken() {
+    public ResponseEntity<LoginResponseDto> refreshToken(HttpServletRequest request) {
         // TODO: 토큰 재발급 로직 구현
-        // 일반적으로 Header에서 Refresh Token을 가져와서 검증 후 새 Access Token 발급
-        LoginResponseDto response = new LoginResponseDto("new_access_token");
+        // 쿠키에서 Refresh Token 추출
+        Cookie[] cookies = request.getCookies();
+        String refreshToken = null;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refresh_token".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // Refresh Token 검증하고 새 Access Token 발급
+        LoginResponseDto response = authService.reissueToken(refreshToken);
+
         return ResponseEntity.ok(response);
     }
 
