@@ -5,7 +5,7 @@ import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.global.annotation.AuthUser;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
-import com.example.knu_connect.global.resolver.AuthUserArgumentResolver;
+import com.example.knu_connect.global.resolver.RestAuthUserArgumentResolver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,13 +24,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthUserArgumentResolverTest {
 
-    private AuthUserArgumentResolver resolver;
+    private RestAuthUserArgumentResolver resolver;
 
     @Mock private MethodParameter parameter;
 
     @BeforeEach
     void init() {
-        resolver = new AuthUserArgumentResolver();
+        resolver = new RestAuthUserArgumentResolver();
         SecurityContextHolder.clearContext();
     }
 

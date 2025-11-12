@@ -1,7 +1,7 @@
 package com.example.knu_connect.global.config;
 
 import com.example.knu_connect.global.auth.websocket.StompAuthChannelInterceptor;
-import com.example.knu_connect.global.resolver.AuthUserArgumentResolver;
+import com.example.knu_connect.global.resolver.WebSocketAuthUserArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -19,7 +19,7 @@ import java.util.List;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
-    private final AuthUserArgumentResolver authUserArgumentResolver;
+    private final WebSocketAuthUserArgumentResolver webSocketAuthUserArgumentResolver;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -48,6 +48,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
         // WebSocket용 @AuthUser ArgumentResolver 등록
-        argumentResolvers.add(authUserArgumentResolver);
+        argumentResolvers.add(webSocketAuthUserArgumentResolver);
     }
 }
