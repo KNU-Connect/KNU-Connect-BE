@@ -22,7 +22,8 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final String[] allowedUrls = {"/h2-console/**", "/swagger-ui/**", "/api-docs/**", "/actuator/health",
-            "/api/auth/signup", "/api/auth/login", "/api/auth/email/**", "api/auth/refresh"}; // 인증 없이 허용할 url 목록
+            "/api/auth/signup", "/api/auth/login", "/api/auth/email/**", "/api/auth/refresh",
+            "/ws/**", "/chat-test.html"}; // 인증 없이 허용할 url 목록
 
     // 보안 설정
     @Bean

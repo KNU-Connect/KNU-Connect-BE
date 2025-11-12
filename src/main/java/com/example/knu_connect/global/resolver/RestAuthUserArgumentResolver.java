@@ -15,11 +15,10 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 @Component
-public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
+public class RestAuthUserArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        // 파라미터에 @AuthUser가 붙어있고, 타입이 User이면 지원
         return parameter.hasParameterAnnotation(AuthUser.class)
                 && User.class.isAssignableFrom(parameter.getParameterType());
     }
@@ -33,7 +32,7 @@ public class AuthUserArgumentResolver implements HandlerMethodArgumentResolver {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || authentication.getPrincipal().equals("anonymousUser")) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS); // 401 예외
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS);
         }
 
         Object principal = authentication.getPrincipal();

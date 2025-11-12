@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +21,7 @@ public class UserController {
 
     @Operation(
             summary = "내 정보 조회",
-            description = "현재 로그인한 사용자의 정보를 조회합니다",
-            security = @SecurityRequirement(name = "Bearer Authentication")
+            description = "현재 로그인한 사용자의 정보를 조회합니다"
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -52,8 +50,7 @@ public class UserController {
 
     @Operation(
             summary = "유저 정보 수정",
-            description = "현재 로그인한 사용자의 정보를 수정합니다",
-            security = @SecurityRequirement(name = "Bearer Authentication")
+            description = "현재 로그인한 사용자의 정보를 수정합니다"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "수정 성공"),
