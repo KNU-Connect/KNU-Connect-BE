@@ -162,7 +162,7 @@ public class AuthService {
     // Access Token 재발급
     public LoginResponseDto reissueToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh Token이 없습니다.");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh Token이 존재하지 않습니다.");
         }
 
         // refreshToken 유효성 검사 및 정보 추출
@@ -188,7 +188,7 @@ public class AuthService {
         String refreshKey = "token:refresh:" + refreshToken;
         if (!Boolean.TRUE.equals(redisTemplate.hasKey(refreshKey))) {
             log.info("Redis에 존재하지 않는 refresh token: {}", refreshToken);
-            throw new BusinessException(ErrorCode.INVALID_TOKEN, "로그아웃된 토큰입니다.");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "존재하지 않거나 맞지 않는 토큰입니다.");
         }
 
         // AccessToken 재발급
