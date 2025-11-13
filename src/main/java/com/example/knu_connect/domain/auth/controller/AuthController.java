@@ -102,7 +102,6 @@ public class AuthController {
     })
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponseDto> refreshToken(HttpServletRequest request) {
-        // TODO: 토큰 재발급 로직 구현
         // 쿠키에서 Refresh Token 추출
         Cookie[] cookies = request.getCookies();
         String refreshToken = null;
@@ -132,9 +131,21 @@ public class AuthController {
     })
     @DeleteMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
+        // 쿠키에서 Refresh Token 추출
+        Cookie[] cookies = request.getCookies();
+        String refreshToken = null;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refresh_token".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
         // Redis에 Access Token 블랙리스트 등록 및 Refresh Token 삭제 처리
         String accessToken = request.getHeader("Authorization").split(" ")[1];
-        authService.logout(accessToken);
+        authService.logout(accessToken, refreshToken);
 
         // Refresh Token 쿠키를 무효화(삭제용 Set-Cookie 헤더 생성)
         String clearCookieValue = authService.formatClearRefreshTokenCookie();

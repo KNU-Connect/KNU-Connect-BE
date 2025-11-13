@@ -107,8 +107,8 @@ public class AuthService {
         String refreshToken = jwtUtil.createRefreshToken(email);
 
         // Redis에 Refresh Token 저장
-        String key = "email:refresh:" + email;
-        redisTemplate.opsForValue().set(key, refreshToken, REFRESH_TTL_MINUTES, TimeUnit.MINUTES);
+        String key = "token:refresh:" + refreshToken;
+        redisTemplate.opsForValue().set(key, email, REFRESH_TTL_MINUTES, TimeUnit.MINUTES);
 
 
         return new TokenWithRefreshResponseDto(accessToken, refreshToken);
@@ -120,7 +120,7 @@ public class AuthService {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
-                .path("/api/auth/refresh")
+                .path("/api/auth")
                 .maxAge(Duration.ofDays(7))      // 즉시 만료
                 .build()
                 .toString();
@@ -128,23 +128,21 @@ public class AuthService {
 
     // 로그아웃 관련
     // 로그아웃 요청 처리
-    public void logout(String accessToken) {
+    public void logout(String accessToken, String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh Token이 존재하지 않습니다.");
+        }
 
         // 토큰 남은 유효 시간
         long exp = jwtUtil.getExpiration(accessToken) - System.currentTimeMillis();
         if (exp < 0) exp = 0;
 
-        // 인증 정보에서 이메일 추출
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        String email = userDetails.getUsername();
-
         // Redis에 블랙리스트로 Access Token 저장
-        String key = "email:blacklist:" + email;
-        redisTemplate.opsForValue().set(key, accessToken, exp, TimeUnit.MILLISECONDS);
+        String blacklistKey = "token:blacklist:" + accessToken;
+        redisTemplate.opsForValue().set(blacklistKey, "true", exp, TimeUnit.MILLISECONDS);
 
         // Redis에 Refresh Token 삭제
-        String refreshKey = "email:refresh:" + email;
+        String refreshKey = "token:refresh:" + refreshToken;
         redisTemplate.delete(refreshKey);
     }
 
@@ -154,7 +152,7 @@ public class AuthService {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
-                .path("/api/auth/refresh")
+                .path("/api/auth")
                 .maxAge(0)      // 즉시 만료
                 .build()
                 .toString();
@@ -163,14 +161,13 @@ public class AuthService {
     // 인증 토큰 재발급 관련
     // Access Token 재발급
     public LoginResponseDto reissueToken(String refreshToken) {
-        String email;
-        String tokenType;
-
         if (refreshToken == null || refreshToken.isBlank()) {
-            refreshToken = "invalidToken";
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh Token이 없습니다.");
         }
 
         // refreshToken 유효성 검사 및 정보 추출
+        String email;
+        String tokenType;
         try {
             email = jwtUtil.getEmail(refreshToken);
             tokenType = jwtUtil.getTokenType(refreshToken);
@@ -188,12 +185,10 @@ public class AuthService {
         }
 
         // Redis 저장값과 비교
-        String key = "email:refresh:" + email;
-        String storedToken = redisTemplate.opsForValue().get(key);
-
-        if (storedToken == null || !storedToken.equals(refreshToken)) {
-            log.info("Redis의 refreshToken이 없거나 불일치: email={}", email);
-            throw new BusinessException(ErrorCode.INVALID_TOKEN, "만료되었거나 유효하지 않은 토큰입니다.");
+        String refreshKey = "token:refresh:" + refreshToken;
+        if (!Boolean.TRUE.equals(redisTemplate.hasKey(refreshKey))) {
+            log.info("Redis에 존재하지 않는 refresh token: {}", refreshToken);
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "로그아웃된 토큰입니다.");
         }
 
         // AccessToken 재발급

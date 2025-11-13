@@ -53,10 +53,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 토큰 추출
         String accessToken = request.getHeader("Authorization").substring(7);
         if (accessToken.isBlank()) {
-            accessToken = "invalidToken";
+//            accessToken = "invalidToken";
         }
 
         try {
+            // 로그아웃한 토큰인지 확인
+            if (Boolean.TRUE.equals(redisTemplate.hasKey("token:blacklist:" + accessToken))) {
+                throw new BusinessException(ErrorCode.BLACKLIST_TOKEN);
+            }
+
             // 토큰 파싱하여 claim 가지고 오기 (검증도 같이)
             Claims claims = jwtUtil.getClaims(accessToken);
             String tokenType = claims.get(JwtUtil.TOKEN_TYPE_CLAIM, String.class);
@@ -67,12 +72,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new BusinessException(ErrorCode.INVALID_TOKEN_TYPE);
             }
 
-            // 로그아웃한 토큰인지 확인
-            String blacklistedToken = redisTemplate.opsForValue().get("email:blacklist:" + email);
-            if (accessToken.equals(blacklistedToken)) {
-                throw new BusinessException(ErrorCode.BLACKLIST_TOKEN);
-            }
-
+            // SecurityContext에 인증정보가 없을 때만 설정
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 CustomUserDetails userDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername(email);
 
