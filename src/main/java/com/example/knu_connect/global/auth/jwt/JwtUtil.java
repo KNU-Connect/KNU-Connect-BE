@@ -56,6 +56,8 @@ public class JwtUtil {
         return getClaims(token).getSubject();
     }
 
+    public long getExpiration(String token) { return getClaims(token).getExpiration().getTime(); }
+
     // 토큰 타입 추출
     public String getTokenType(String token) {
         return getClaims(token).get(TOKEN_TYPE_CLAIM, String.class);

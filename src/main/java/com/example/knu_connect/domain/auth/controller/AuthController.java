@@ -17,6 +17,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +72,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content)
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
         // 로그인 요청 처리하고 Access/Refresh Token 발급
         TokenWithRefreshResponseDto tokens = authService.login(request);
 
@@ -99,10 +101,10 @@ public class AuthController {
             @ApiResponse(responseCode = "403", description = "만료된 Refresh Token", content = @Content)
     })
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponseDto> refreshToken() {
-        // TODO: 토큰 재발급 로직 구현
-        // 일반적으로 Header에서 Refresh Token을 가져와서 검증 후 새 Access Token 발급
-        LoginResponseDto response = new LoginResponseDto("new_access_token");
+    public ResponseEntity<LoginResponseDto> refreshToken(@CookieValue(value = "refresh_token", required = false) String refreshToken) {
+        // Refresh Token 검증하고 새 Access Token 발급
+        LoginResponseDto response = authService.reissueToken(refreshToken);
+
         return ResponseEntity.ok(response);
     }
 
@@ -116,10 +118,19 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content)
     })
     @DeleteMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        // TODO: 로그아웃 로직 구현
-        // 일반적으로 Redis 등에 저장된 Refresh Token을 삭제하거나 블랙리스트에 추가
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> logout(@CookieValue(value = "refresh_token", required = false) String refreshToken,
+                                       @RequestHeader(value = "Authorization") String authorization) {
+
+        // Redis에 Access Token 블랙리스트 등록 및 Refresh Token 삭제 처리
+        String accessToken = authorization.split(" ")[1];
+        authService.logout(accessToken, refreshToken);
+
+        // Refresh Token 쿠키를 무효화(삭제용 Set-Cookie 헤더 생성)
+        String clearCookieValue = authService.formatClearRefreshTokenCookie();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clearCookieValue)
+                .build();
     }
 
     @Operation(summary = "이메일 인증번호 전송", description = "입력한 이메일로 인증번호를 전송합니다")

@@ -2,22 +2,28 @@ package com.example.knu_connect.domain.auth.service;
 
 import com.example.knu_connect.domain.auth.dto.request.EmailVerifyRequestDto;
 import com.example.knu_connect.domain.auth.dto.request.LoginRequestDto;
+import com.example.knu_connect.domain.auth.dto.response.LoginResponseDto;
 import com.example.knu_connect.domain.auth.dto.response.TokenWithRefreshResponseDto;
 import com.example.knu_connect.global.auth.jwt.CustomUserDetails;
 import com.example.knu_connect.global.auth.jwt.JwtUtil;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -38,7 +44,7 @@ public class AuthService {
         String email = requestDto.email();
         String inputCode = requestDto.verificationCode();
 
-        // redis에서 해당 이메일의 code 가져오기
+        // Redis에서 해당 이메일의 code 가져오기
         String key = "email:verify:" + email;
         String storedCode = redisTemplate.opsForValue().get(key);
 
@@ -71,7 +77,7 @@ public class AuthService {
         return Boolean.TRUE.equals(redisTemplate.hasKey("email:verified:" + email));
     }
 
-    // redis에서 verified 키 삭제
+    // Redis에서 verified 키 삭제
     public void clearVerifiedEmail(String email) {
         redisTemplate.delete("email:verified:" + email);
     }
@@ -100,20 +106,95 @@ public class AuthService {
         String accessToken = jwtUtil.createAccessToken(email);
         String refreshToken = jwtUtil.createRefreshToken(email);
 
-        // Redis에 Refresh 토큰 저장
-        String key = "email:refresh:" + email;
-        redisTemplate.opsForValue().set(key, refreshToken, REFRESH_TTL_MINUTES, TimeUnit.MINUTES);
+        // Redis에 Refresh Token 저장
+        String key = "token:refresh:" + refreshToken;
+        redisTemplate.opsForValue().set(key, email, REFRESH_TTL_MINUTES, TimeUnit.MINUTES);
 
 
         return new TokenWithRefreshResponseDto(accessToken, refreshToken);
     }
 
+    // 로그인 시 Refresh Token 쿠키 생성
     public String formatRefreshTokenCookie(String refreshToken) {
-        String name = "refresh_token";
-        String value = refreshToken;
-        String path = "/api/auth/refresh";
-        int maxAge = 604800;  // 7일(초)
-        return String.format("%s=%s; Path=%s; Max-Age=%d; Secure; HttpOnly; SameSite=Lax",
-                name, value, path, maxAge);
+        return ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/api/auth")
+                .maxAge(Duration.ofDays(7))      // 즉시 만료
+                .build()
+                .toString();
+    }
+
+    // 로그아웃 관련
+    // 로그아웃 요청 처리
+    public void logout(String accessToken, String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh Token이 존재하지 않습니다.");
+        }
+
+        // 토큰 남은 유효 시간
+        long exp = jwtUtil.getExpiration(accessToken) - System.currentTimeMillis();
+        if (exp < 0) exp = 0;
+
+        // Redis에 블랙리스트로 Access Token 저장
+        String blacklistKey = "token:blacklist:" + accessToken;
+        redisTemplate.opsForValue().set(blacklistKey, "true", exp, TimeUnit.MILLISECONDS);
+
+        // Redis에 Refresh Token 삭제
+        String refreshKey = "token:refresh:" + refreshToken;
+        redisTemplate.delete(refreshKey);
+    }
+
+    // 로그아웃 시 Refresh Token 쿠키 삭제 (만료 쿠키 전송)
+    public String formatClearRefreshTokenCookie() {
+        return ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/api/auth")
+                .maxAge(0)      // 즉시 만료
+                .build()
+                .toString();
+    }
+
+    // 인증 토큰 재발급 관련
+    // Access Token 재발급
+    public LoginResponseDto reissueToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh Token이 존재하지 않습니다.");
+        }
+
+        // refreshToken 유효성 검사 및 정보 추출
+        String email;
+        String tokenType;
+        try {
+            email = jwtUtil.getEmail(refreshToken);
+            tokenType = jwtUtil.getTokenType(refreshToken);
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 토큰 요청");
+            throw new BusinessException(ErrorCode.EXPIRED_TOKEN);
+        } catch (JwtException e) {
+            log.warn("유효하지 않은 토큰 요청");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 토큰 타입 확인
+        if (!JwtUtil.REFRESH_TOKEN_TYPE.equals(tokenType)) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN_TYPE);
+        }
+
+        // Redis 저장값과 비교
+        String refreshKey = "token:refresh:" + refreshToken;
+        if (!Boolean.TRUE.equals(redisTemplate.hasKey(refreshKey))) {
+            log.info("Redis에 존재하지 않는 refresh token: {}", refreshToken);
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "존재하지 않거나 맞지 않는 토큰입니다.");
+        }
+
+        // AccessToken 재발급
+        String newAccessToken = jwtUtil.createAccessToken(email);
+        log.info("AccessToken 재발급 성공: email={}", email);
+
+        return new LoginResponseDto(newAccessToken);
     }
 }

@@ -28,13 +28,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthServiceLoginTest {
+class AuthServiceLoginTest {
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtUtil jwtUtil;
     @Mock private StringRedisTemplate redisTemplate;
-
     @InjectMocks private AuthService authService;
-
     @Mock private ValueOperations<String, String> valueOperations;
 
     @Test
@@ -64,8 +62,8 @@ public class AuthServiceLoginTest {
         assertThat(response.refreshToken()).isEqualTo("refresh-token");
 
         verify(redisTemplate.opsForValue()).set(
-                eq("email:refresh:test@knu.ac.kr"),
-                eq("refresh-token"),
+                eq("token:refresh:refresh-token"),
+                eq("test@knu.ac.kr"),
                 anyLong(),
                 eq(TimeUnit.MINUTES)
         );
