@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 토큰 추출
         String accessToken = request.getHeader("Authorization").substring(7);
         if (accessToken.isBlank()) {
-//            accessToken = "invalidToken";
+            accessToken = "invalidToken";
         }
 
         try {
