@@ -38,19 +38,7 @@ public class UserController {
     })
     @GetMapping
     public ResponseEntity<UserInfoResponseDto> getUserInfo(@AuthUser User user) {
-        // TODO: 내 정보 조회 로직 구현
         UserInfoResponseDto response = userService.getUserInfo(user.getId());
-//        UserInfoResponseDto response = new UserInfoResponseDto(
-//                "홍길동",
-//                "student",
-//                "computer",
-//                "employment",
-//                "ENFP",
-//                "backend",
-//                true,
-//                "안녕하세요. 백엔드 개발에 관심이 많은 학생입니다.",
-//                "저는 Spring Boot를 활용한 백엔드 개발에 관심이 많으며, 현재 여러 프로젝트를 진행하고 있습니다."
-//        );
         return ResponseEntity.ok(response);
     }
 
@@ -63,7 +51,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content)
     })
-    @PutMapping
+    @PatchMapping
     public ResponseEntity<Void> updateUserInfo(@Valid @RequestBody UserUpdateRequestDto request,
                                                @AuthUser User user) {
         userService.updateUserInfo(user.getId(), request);
