@@ -2,6 +2,9 @@ package com.example.knu_connect.domain.user.controller;
 
 import com.example.knu_connect.domain.user.dto.request.UserUpdateRequestDto;
 import com.example.knu_connect.domain.user.dto.response.UserInfoResponseDto;
+import com.example.knu_connect.domain.user.entity.User;
+import com.example.knu_connect.domain.user.service.UserService;
+import com.example.knu_connect.global.annotation.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UserController {
 
+    private final UserService userService;
+
     @Operation(
             summary = "내 정보 조회",
             description = "현재 로그인한 사용자의 정보를 조회합니다"
@@ -32,19 +37,20 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content)
     })
     @GetMapping
-    public ResponseEntity<UserInfoResponseDto> getUserInfo() {
+    public ResponseEntity<UserInfoResponseDto> getUserInfo(@AuthUser User user) {
         // TODO: 내 정보 조회 로직 구현
-        UserInfoResponseDto response = new UserInfoResponseDto(
-                "홍길동",
-                "student",
-                "computer",
-                "employment",
-                "ENFP",
-                "backend",
-                true,
-                "안녕하세요. 백엔드 개발에 관심이 많은 학생입니다.",
-                "저는 Spring Boot를 활용한 백엔드 개발에 관심이 많으며, 현재 여러 프로젝트를 진행하고 있습니다."
-        );
+        UserInfoResponseDto response = userService.getUserInfo(user.getId());
+//        UserInfoResponseDto response = new UserInfoResponseDto(
+//                "홍길동",
+//                "student",
+//                "computer",
+//                "employment",
+//                "ENFP",
+//                "backend",
+//                true,
+//                "안녕하세요. 백엔드 개발에 관심이 많은 학생입니다.",
+//                "저는 Spring Boot를 활용한 백엔드 개발에 관심이 많으며, 현재 여러 프로젝트를 진행하고 있습니다."
+//        );
         return ResponseEntity.ok(response);
     }
 
@@ -58,8 +64,9 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content)
     })
     @PutMapping
-    public ResponseEntity<Void> updateUserInfo(@Valid @RequestBody UserUpdateRequestDto request) {
-        // TODO: 유저 정보 수정 로직 구현
+    public ResponseEntity<Void> updateUserInfo(@Valid @RequestBody UserUpdateRequestDto request,
+                                               @AuthUser User user) {
+        userService.updateUserInfo(user.getId(), request);
         return ResponseEntity.ok().build();
     }
 }
