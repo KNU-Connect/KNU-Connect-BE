@@ -38,31 +38,26 @@ public class NetWorkingServiceImpl implements NetworkingService {
     @Override
     @Transactional
     public void createNetworking(User user, NetworkingCreateRequestDto request, Long chatRoomId) {
-        User leader;
+        User leader = user;
         ChatRoom chatRoom;
 
         if (chatRoomId == null) {
-            // 새로운 채팅방 생성
-            leader = user;
             chatRoom = ChatRoom.create();
             chatRoom = chatRoomRepository.save(chatRoom);
 
-            // 생성자를 참여자로 추가
             ChatParticipants participants = ChatParticipants.builder()
                     .chatRoom(chatRoom)
-                    .user(user)
+                    .user(leader)
+                    .lastReadMessageId(0L)
                     .build();
-            participants = chatParticipantsRepository.save(participants);
+            chatParticipantsRepository.save(participants);
 
             chatRoom.addParticipant(participants);
+
         } else {
-            // 기존 채팅방 사용
-            leader = userRepository.findById(request.representativeId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
             chatRoom = chatRoomRepository.findById(chatRoomId)
                     .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
 
-            // 채팅방에 대표자가 참여자인지 확인
             boolean isParticipant = chatRoom.getParticipants().stream()
                     .anyMatch(p -> p.getUser().getId().equals(leader.getId()));
 
@@ -71,13 +66,14 @@ public class NetWorkingServiceImpl implements NetworkingService {
             }
         }
 
-        // 네트워킹 생성 및 저장
         Networking networking = Networking.builder()
                 .title(request.title())
                 .contents(request.contents())
                 .maxNumber(request.maxNumber())
                 .user(leader)
                 .chatRoom(chatRoom)
+                .visible(true)
+                .curNumber(chatRoom.getParticipants().size()) // 초기값 설정
                 .build();
 
         networkingRepository.save(networking);
@@ -88,23 +84,26 @@ public class NetWorkingServiceImpl implements NetworkingService {
         Page<Networking> networkings;
 
         if (keyword == null || keyword.trim().isEmpty()) {
-            // 키워드가 없으면 전체 조회
             networkings = networkingRepository.findAll(pageable);
         } else {
-            // 키워드로 제목 또는 내용 검색
             networkings = networkingRepository.findByTitleContainingOrContentsContaining(
                     keyword, keyword, pageable);
         }
 
         List<NetworkingListResponseDto.NetworkingBoardDto> boards = networkings.stream()
-                .map(n -> new NetworkingListResponseDto.NetworkingBoardDto(
-                        n.getId(),
-                        n.getTitle(),
-                        n.getContents(),
-                        n.getChatRoom().getParticipants().size(),
-                        n.getMaxNumber(),
-                        n.getCreatedAt()
-                ))
+                .map(n -> {
+
+                    int realParticipantCount = n.getChatRoom().getParticipants().size();
+
+                    return new NetworkingListResponseDto.NetworkingBoardDto(
+                            n.getId(),
+                            n.getTitle(),
+                            n.getContents(),
+                            realParticipantCount,
+                            n.getMaxNumber(),
+                            n.getCreatedAt()
+                    );
+                })
                 .collect(Collectors.toList());
 
         return new NetworkingListResponseDto(
@@ -122,6 +121,8 @@ public class NetWorkingServiceImpl implements NetworkingService {
 
         User representative = networking.getUser();
 
+        int realParticipantCount = networking.getChatRoom().getParticipants().size();
+
         NetworkingDetailResponseDto.RepresentativeDto representativeDto =
                 new NetworkingDetailResponseDto.RepresentativeDto(
                         representative.getName(),
@@ -137,7 +138,7 @@ public class NetWorkingServiceImpl implements NetworkingService {
                 networking.getId(),
                 networking.getTitle(),
                 networking.getContents(),
-                networking.getChatRoom().getParticipants().size(),
+                realParticipantCount,
                 networking.getMaxNumber(),
                 networking.getCreatedAt(),
                 representativeDto
@@ -150,12 +151,10 @@ public class NetWorkingServiceImpl implements NetworkingService {
         Networking networking = networkingRepository.findById(networkingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NETWORKING_NOT_FOUND));
 
-        // 작성자 본인만 수정 가능
         if (!networking.getUser().getId().equals(user.getId())) {
             throw new BusinessException(ErrorCode.NETWORKING_FORBIDDEN);
         }
 
-        // 네트워킹 정보 업데이트
         networking.update(
                 request.title(),
                 request.contents(),
@@ -168,15 +167,18 @@ public class NetWorkingServiceImpl implements NetworkingService {
         Page<Networking> networkings = networkingRepository.findByUser(user, pageable);
 
         List<MyNetworkingListResponseDto.MyNetworkingBoardDto> boards = networkings.stream()
-                .map(n -> new MyNetworkingListResponseDto.MyNetworkingBoardDto(
-                        n.getId(),
-                        n.getTitle(),
-                        n.getUser().getName(),
-                        n.getContents(),
-                        n.getChatRoom().getParticipants().size(),
-                        n.getMaxNumber(),
-                        n.getCreatedAt()
-                ))
+                .map(n -> {
+                    int realParticipantCount = n.getChatRoom().getParticipants().size();
+                    return new MyNetworkingListResponseDto.MyNetworkingBoardDto(
+                            n.getId(),
+                            n.getTitle(),
+                            n.getUser().getName(),
+                            n.getContents(),
+                            realParticipantCount,
+                            n.getMaxNumber(),
+                            n.getCreatedAt()
+                    );
+                })
                 .collect(Collectors.toList());
 
         return new MyNetworkingListResponseDto(
