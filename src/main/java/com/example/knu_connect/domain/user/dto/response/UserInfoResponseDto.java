@@ -1,5 +1,6 @@
 package com.example.knu_connect.domain.user.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "내 정보 조회 응답")
@@ -28,6 +29,7 @@ public record UserInfoResponseDto(
         @Schema(description = "간단한 자기소개", example = "안녕하세요. 백엔드 개발에 관심이 많은 학생입니다.")
         String introduction,
 
+        @JsonProperty("detail_introduction")
         @Schema(description = "상세 자기소개", example = "저는 Spring Boot를 활용한 백엔드 개발에 관심이 많으며, 현재 여러 프로젝트를 진행하고 있습니다.")
         String detailIntroduction
 ) {

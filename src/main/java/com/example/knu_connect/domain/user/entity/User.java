@@ -65,4 +65,16 @@ public class User extends BaseTimeEntity {
         this.mbti = mbti;
         this.mentor = mentor;
     }
+
+    public void update(String department, String career, String mbti, String status, String interest,
+                       Boolean mentor, String introduction, String detailIntroduction) {
+        if (department != null) this.department = Department.valueOf(department);
+        if (career != null) this.career = Career.valueOf(career);
+        if (mbti != null) this.mbti = Mbti.valueOf(mbti);
+        if (status != null) this.status = Status.valueOf(status);
+        if (interest != null) this.interest = Interest.valueOf(interest);
+        if (mentor != null) this.mentor = mentor;
+        if (introduction != null) this.introduction = introduction;
+        if (detailIntroduction != null) this.detailIntroduction = detailIntroduction;
+    }
 }
