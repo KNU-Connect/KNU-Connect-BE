@@ -6,6 +6,9 @@ import com.example.knu_connect.domain.networking.dto.response.MyNetworkingListRe
 import com.example.knu_connect.domain.networking.dto.response.NetworkingDetailResponseDto;
 import com.example.knu_connect.domain.networking.dto.response.NetworkingListResponseDto;
 import com.example.knu_connect.domain.networking.dto.response.ParticipantsResponseDto;
+import com.example.knu_connect.domain.networking.service.NetworkingService;
+import com.example.knu_connect.domain.user.entity.User;
+import com.example.knu_connect.global.annotation.AuthUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -13,21 +16,22 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.Collections;
 
 @Tag(name = "02. Networking", description = "네트워킹 API")
 @RestController
 @RequestMapping("/api/networking")
 @RequiredArgsConstructor
 public class NetworkingController {
+
+    private NetworkingService networkingService;
 
     @Operation(
             summary = "네트워킹 생성",
@@ -38,14 +42,16 @@ public class NetworkingController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content)
     })
-    @Parameter(description = "채팅방 ID", example = "1")
+    @Parameter(description = "채팅방 ID (채팅방에서 네트워킹 생성 시)", example = "1")
     @PostMapping
     public ResponseEntity<Void> createNetworking(
             @RequestParam(name = "chat_room_id") Long chatRoomId,
-            @Valid @RequestBody NetworkingCreateRequestDto request
+            @Valid @RequestBody NetworkingCreateRequestDto request,
+            @AuthUser User user
     ) {
-        // TODO: 네트워킹 생성 로직 구현
-        return ResponseEntity.ok().build();
+        networkingService.createNetworking(user, request, chatRoomId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Operation(
@@ -67,16 +73,11 @@ public class NetworkingController {
     @GetMapping
     public ResponseEntity<NetworkingListResponseDto> getNetworkingList(
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size
+            @PageableDefault(page = 0, size = 10) Pageable pageable,
+            @AuthUser User user
     ) {
-        // TODO: 게시물 목록 조회 로직 구현
-        NetworkingListResponseDto response = new NetworkingListResponseDto(
-                Collections.emptyList(),
-                page,
-                size,
-                false
-        );
+        NetworkingListResponseDto response = networkingService.getNetworkingList(user, keyword, pageable);
+
         return ResponseEntity.ok(response);
     }
 
@@ -95,29 +96,11 @@ public class NetworkingController {
     @Parameter(description = "네트워킹 ID", example = "1")
     @GetMapping("/{networking_id}")
     public ResponseEntity<NetworkingDetailResponseDto> getNetworkingDetail(
-            @PathVariable("networking_id") Long networkingId
+            @PathVariable("networking_id") Long networkingId,
+            @AuthUser User user
     ) {
-        // TODO: 게시물 상세 정보 조회 로직 구현
-        NetworkingDetailResponseDto.RepresentativeDto representative =
-                new NetworkingDetailResponseDto.RepresentativeDto(
-                        "홍길동",
-                        "student",
-                        "computer",
-                        "employment",
-                        "ENFP",
-                        "backend",
-                        "안녕하세요."
-                );
+        NetworkingDetailResponseDto response = networkingService.getNetworkingDetail(user, networkingId);
 
-        NetworkingDetailResponseDto response = new NetworkingDetailResponseDto(
-                1L,
-                "샘플 제목",
-                "샘플 내용",
-                3,
-                5,
-                LocalDateTime.now(),
-                representative
-        );
         return ResponseEntity.ok(response);
     }
 
@@ -136,15 +119,17 @@ public class NetworkingController {
     public ResponseEntity<Void> updateNetworking(
             @Parameter(description = "네트워킹 ID", example = "1")
             @PathVariable("networking_id") Long networkingId,
-            @Valid @RequestBody NetworkingUpdateRequestDto request
+            @Valid @RequestBody NetworkingUpdateRequestDto request,
+            @AuthUser User user
     ) {
-        // TODO: 게시물 수정 로직 구현
+        networkingService.updateNetworking(user, request, networkingId);
+
         return ResponseEntity.ok().build();
     }
 
     @Operation(
             summary = "내가 작성한 글 보기",
-            description = "현재 로그인한 사용자가 작성한 네트워킹 게시물 목록을 조회합니다"
+            description = "현재 로그인한 사용자가 대표자로 있는 네트워킹 게시물 목록을 조회합니다"
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -160,16 +145,11 @@ public class NetworkingController {
     })
     @GetMapping("/me")
     public ResponseEntity<MyNetworkingListResponseDto> getMyNetworkingList(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size
+            @PageableDefault(page = 0, size = 10) Pageable pageable,
+            @AuthUser User user
     ) {
-        // TODO: 내가 작성한 글 조회 로직 구현
-        MyNetworkingListResponseDto response = new MyNetworkingListResponseDto(
-                Collections.emptyList(),
-                page,
-                size,
-                false
-        );
+        MyNetworkingListResponseDto response = networkingService.getMyNetworkingList(user, pageable);
+
         return ResponseEntity.ok(response);
     }
 
@@ -188,12 +168,10 @@ public class NetworkingController {
     @Parameter(description = "네트워킹 ID", example = "1")
     @GetMapping("/{networking_id}/participants")
     public ResponseEntity<ParticipantsResponseDto> getParticipants(
-            @PathVariable("networking_id") Long networkingId
+            @PathVariable("networking_id") Long networkingId,
+            @AuthUser User user
     ) {
-        // TODO: 참여인원 목록 조회 로직 구현
-        ParticipantsResponseDto response = new ParticipantsResponseDto(
-                Collections.emptyList()
-        );
+        ParticipantsResponseDto response = networkingService.getNetworkingParticipants(user, networkingId);
         return ResponseEntity.ok(response);
     }
 }

@@ -21,7 +21,6 @@ public record NetworkingCreateRequestDto(
         Integer maxNumber,
 
         @Schema(description = "대표자 ID", example = "1")
-        @NotNull(message = "대표자 ID는 필수입니다")
         Long representativeId
 ) {
 }
