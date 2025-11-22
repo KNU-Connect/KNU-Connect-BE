@@ -1,5 +1,6 @@
 package com.example.knu_connect.domain.mentor.controller;
 
+import com.example.knu_connect.domain.mentor.MentorService;
 import com.example.knu_connect.domain.mentor.dto.response.MentorDetailResponseDto;
 import com.example.knu_connect.domain.mentor.dto.response.MentorListResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +24,8 @@ import java.util.Collections;
 @RequestMapping("/api/mentors")
 @RequiredArgsConstructor
 public class MentorController {
+
+    private final MentorService mentorService;
 
     @Operation(
             summary = "멘토 목록 조회",
@@ -45,16 +50,10 @@ public class MentorController {
             @RequestParam(required = false) String career,
             @RequestParam(required = false) String interest,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size
+            @PageableDefault(page = 0, size = 10) Pageable pageable
     ) {
-        // TODO: 멘토 목록 조회 로직 구현
-        MentorListResponseDto response = new MentorListResponseDto(
-                Collections.emptyList(),
-                page,
-                size,
-                false
-        );
+        MentorListResponseDto response = mentorService.getMentorList(career, interest, keyword, pageable);
+
         return ResponseEntity.ok(response);
     }
 
@@ -75,17 +74,8 @@ public class MentorController {
             @Parameter(description = "사용자 ID", example = "1")
             @PathVariable("user_id") Long userId
     ) {
-        // TODO: 멘토 상세 조회 로직 구현
-        MentorDetailResponseDto response = new MentorDetailResponseDto(
-                "홍길동",
-                "computer",
-                "graduate",
-                "employment",
-                "backend",
-                "ENFP",
-                "안녕하세요. 백엔드 개발에 관심이 많은 멘토입니다.",
-                "저는 5년간 백엔드 개발을 해왔으며, Spring Boot와 JPA를 주로 사용합니다."
-        );
+        MentorDetailResponseDto response = mentorService.getMentorDetail(userId);
+
         return ResponseEntity.ok(response);
     }
 }

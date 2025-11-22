@@ -1,5 +1,6 @@
 package com.example.knu_connect.domain.mentor.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "멘토 상세 정보 응답")
@@ -25,6 +26,7 @@ public record MentorDetailResponseDto(
         @Schema(description = "간단한 자기소개", example = "안녕하세요. 백엔드 개발에 관심이 많은 멘토입니다.")
         String introduction,
 
+        @JsonProperty("detail_introduction")
         @Schema(description = "상세 자기소개", example = "저는 5년간 백엔드 개발을 해왔으며, Spring Boot와 JPA를 주로 사용합니다. 현재는 대용량 트래픽 처리와 마이크로서비스 아키텍처에 관심이 많습니다.")
         String detailIntroduction
 ) {
