@@ -36,7 +36,7 @@ public record SignupRequestDto(
 
         @Schema(description = "MBTI", example = "ENFP")
         @NotBlank(message = "MBTI는 필수입니다")
-        @Pattern(regexp = "^(ISTJ|ISFJ|INFJ|INTJ|ISTP|ISFP|INFP|INTP|ESTP|ESFP|ENFP|ENTP|ESTJ|ESFJ|ENFJ|ENTJ)$",
+        @Pattern(regexp = "^(ISTJ|ISFJ|INFJ|INTJ|ISTP|ISFP|INFP|INTP|ESTP|ESFP|ENFP|ENTP|ESTJ|ESFJ|ENFJ|ENTJ|NONE)$",
                 message = "올바른 MBTI 유형이 아닙니다")
         String mbti,
 
