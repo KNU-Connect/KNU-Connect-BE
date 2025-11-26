@@ -14,7 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 class AuthServiceLoginTest {
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtUtil jwtUtil;
-    @Mock private StringRedisTemplate redisTemplate;
+    @Mock private RedisTemplate<String, String> redisTemplate;
     @InjectMocks private AuthService authService;
     @Mock private ValueOperations<String, String> valueOperations;
 

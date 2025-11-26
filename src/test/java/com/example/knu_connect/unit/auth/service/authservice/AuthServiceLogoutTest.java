@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.concurrent.TimeUnit;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceLogoutTest {
     @Mock private JwtUtil jwtUtil;
-    @Mock StringRedisTemplate redisTemplate;
+    @Mock RedisTemplate<String, String> redisTemplate;
     @InjectMocks private AuthService authService;
     @Mock ValueOperations<String, String> valueOperations;
 
