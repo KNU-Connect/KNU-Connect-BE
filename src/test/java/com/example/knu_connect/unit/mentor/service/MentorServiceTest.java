@@ -1,6 +1,6 @@
 package com.example.knu_connect.unit.mentor.service;
 
-import com.example.knu_connect.domain.mentor.MentorService;
+import com.example.knu_connect.domain.mentor.service.MentorService;
 import com.example.knu_connect.domain.mentor.dto.response.MentorDetailResponseDto;
 import com.example.knu_connect.domain.mentor.dto.response.MentorListResponseDto;
 import com.example.knu_connect.domain.user.entity.User;
