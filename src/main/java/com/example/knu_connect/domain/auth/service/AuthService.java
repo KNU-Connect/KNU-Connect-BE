@@ -20,7 +20,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -118,7 +117,7 @@ public class AuthService {
     public String formatRefreshTokenCookie(String refreshToken) {
         return ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)                   // 개발 환경에서 http 받을 수 있도록
                 .sameSite("Lax")
                 .path("/api/auth")
                 .maxAge(Duration.ofDays(7))      // 즉시 만료
@@ -150,7 +149,7 @@ public class AuthService {
     public String formatClearRefreshTokenCookie() {
         return ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)               // 개발 환경에서 http 받을 수 있도록
                 .sameSite("Lax")
                 .path("/api/auth")
                 .maxAge(0)      // 즉시 만료
