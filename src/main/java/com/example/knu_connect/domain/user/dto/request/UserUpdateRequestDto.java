@@ -17,7 +17,7 @@ public record UserUpdateRequestDto(
         String career,
 
         @Schema(description = "MBTI", example = "ENFP")
-        @Pattern(regexp = "^(ISTJ|ISFJ|INFJ|INTJ|ISTP|ISFP|INFP|INTP|ESTP|ESFP|ENFP|ENTP|ESTJ|ESFJ|ENFJ|ENTJ)$",
+        @Pattern(regexp = "^(ISTJ|ISFJ|INFJ|INTJ|ISTP|ISFP|INFP|INTP|ESTP|ESFP|ENFP|ENTP|ESTJ|ESFJ|ENFJ|ENTJ|NONE)$",
                 message = "올바른 MBTI 유형이 아닙니다")
         String mbti,
 

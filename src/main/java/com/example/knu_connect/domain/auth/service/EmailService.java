@@ -8,7 +8,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private final StringRedisTemplate redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final SpringTemplateEngine templateEngine;
 
     private static final long CODE_EXPIRE_MINUTES = 5; // 인증 번호 TTL(5분)

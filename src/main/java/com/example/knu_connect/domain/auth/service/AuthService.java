@@ -14,13 +14,12 @@ import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -31,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final StringRedisTemplate redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private static final long VERIFIED_TTL_MINUTES = 60; // 인증완료 상태 유지시간 (1시간)
@@ -118,7 +117,7 @@ public class AuthService {
     public String formatRefreshTokenCookie(String refreshToken) {
         return ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)                   // 개발 환경에서 http 받을 수 있도록
                 .sameSite("Lax")
                 .path("/api/auth")
                 .maxAge(Duration.ofDays(7))      // 즉시 만료
@@ -150,7 +149,7 @@ public class AuthService {
     public String formatClearRefreshTokenCookie() {
         return ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)               // 개발 환경에서 http 받을 수 있도록
                 .sameSite("Lax")
                 .path("/api/auth")
                 .maxAge(0)      // 즉시 만료

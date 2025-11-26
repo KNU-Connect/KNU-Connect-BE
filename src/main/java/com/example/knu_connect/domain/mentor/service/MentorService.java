@@ -1,4 +1,4 @@
-package com.example.knu_connect.domain.mentor;
+package com.example.knu_connect.domain.mentor.service;
 
 import com.example.knu_connect.domain.mentor.dto.response.MentorDetailResponseDto;
 import com.example.knu_connect.domain.mentor.dto.response.MentorListResponseDto;

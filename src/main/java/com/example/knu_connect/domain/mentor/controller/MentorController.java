@@ -1,6 +1,6 @@
 package com.example.knu_connect.domain.mentor.controller;
 
-import com.example.knu_connect.domain.mentor.MentorService;
+import com.example.knu_connect.domain.mentor.service.MentorService;
 import com.example.knu_connect.domain.mentor.dto.response.MentorDetailResponseDto;
 import com.example.knu_connect.domain.mentor.dto.response.MentorListResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,8 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Collections;
 
 @Tag(name = "03. Mentor", description = "멘토 API")
 @RestController

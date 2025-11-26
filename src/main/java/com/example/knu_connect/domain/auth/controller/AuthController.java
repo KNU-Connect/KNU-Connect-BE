@@ -46,7 +46,7 @@ public class AuthController {
                 * status: student, graduate, postgraduate, professor 중 선택
                 * department: computer << 현재는 컴퓨터학부 대상으로만 서비스하며 추후 확장 가능합니다.
                 * career: employment, startup, matriculation
-                * mbti: ISTJ, ISFJ, INFJ, INTJ, ISTP, ISFP, INFP, INTP, ESTP, ESFP, ENFP, ENTP, ESTJ, ESFJ, ENFJ, ENTJ 중 선택
+                * mbti: ISTJ, ISFJ, INFJ, INTJ, ISTP, ISFP, INFP, INTP, ESTP, ESFP, ENFP, ENTP, ESTJ, ESFJ, ENFJ, ENTJ, NONE 중 선택
                 * interest: frontend, backend, data, ai, security 중 선택
                 """
     )
