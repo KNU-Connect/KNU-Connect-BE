@@ -13,7 +13,6 @@ import com.example.knu_connect.domain.networking.dto.response.ParticipantsRespon
 import com.example.knu_connect.domain.networking.entitiy.Networking;
 import com.example.knu_connect.domain.networking.repository.NetworkingRepository;
 import com.example.knu_connect.domain.user.entity.User;
-import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,6 @@ import java.util.stream.Collectors;
 public class NetWorkingServiceImpl implements NetworkingService {
 
     private final NetworkingRepository networkingRepository;
-    private final UserRepository userRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantsRepository chatParticipantsRepository;
 
