@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class NetworkingController {
 
-    private NetworkingService networkingService;
+    private final NetworkingService networkingService;
 
     @Operation(
             summary = "네트워킹 생성",
