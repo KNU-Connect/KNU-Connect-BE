@@ -35,6 +35,7 @@ public class MentorService {
 
         List<MentorListResponseDto.MentorDto> mentors = result.getContent().stream()
                 .map(user -> new MentorListResponseDto.MentorDto(
+                        user.getId(),
                         user.getName(),
                         user.getDepartment().name(),
                         user.getStatus().name(),
@@ -58,6 +59,7 @@ public class MentorService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MENTOR_NOT_FOUND));
 
         return new MentorDetailResponseDto(
+                user.getId(),
                 user.getName(),
                 user.getDepartment().name(),
                 user.getStatus().name(),

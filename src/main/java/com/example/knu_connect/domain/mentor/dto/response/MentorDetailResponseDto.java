@@ -5,6 +5,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "멘토 상세 정보 응답")
 public record MentorDetailResponseDto(
+        @Schema(description = "멘토 아이디")
+        Long mentorId,
+
         @Schema(description = "이름", example = "홍길동")
         String name,
 

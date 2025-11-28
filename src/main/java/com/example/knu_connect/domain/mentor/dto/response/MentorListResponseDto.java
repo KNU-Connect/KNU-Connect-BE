@@ -20,6 +20,9 @@ public record MentorListResponseDto(
 ) {
     @Schema(description = "멘토 정보")
     public record MentorDto(
+            @Schema(description = "멘토 아이디")
+            Long mentorId,
+
             @Schema(description = "이름", example = "홍길동")
             String name,
 
