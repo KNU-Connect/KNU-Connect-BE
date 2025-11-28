@@ -1,6 +1,7 @@
 package com.example.knu_connect.domain.auth.service;
 
 import com.example.knu_connect.domain.auth.dto.request.EmailSendRequestDto;
+import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
 import jakarta.mail.MessagingException;
@@ -27,6 +28,7 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final RedisTemplate<String, String> redisTemplate;
     private final SpringTemplateEngine templateEngine;
+    private final UserRepository userRepository;
 
     private static final long CODE_EXPIRE_MINUTES = 5; // 인증 번호 TTL(5분)
 
@@ -36,6 +38,11 @@ public class EmailService {
 
         String email = requestDto.email();
         String code = generateCode();       // 인증 번호 생성 (6자리)
+
+        // 이메일 코드 전송 전 이미 가입된 이메일인지 확인
+        if (userRepository.existsByEmail(email)) {
+                throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
 
         try {
             // Redis에 코드 저장

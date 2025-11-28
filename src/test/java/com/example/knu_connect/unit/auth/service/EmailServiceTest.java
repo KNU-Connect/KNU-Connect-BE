@@ -2,6 +2,7 @@ package com.example.knu_connect.unit.auth.service;
 
 import com.example.knu_connect.domain.auth.dto.request.EmailSendRequestDto;
 import com.example.knu_connect.domain.auth.service.EmailService;
+import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
 import jakarta.mail.MessagingException;
@@ -30,6 +31,7 @@ class EmailServiceTest {
     @Mock private JavaMailSender mailSender;
     @Mock private RedisTemplate<String, String> redisTemplate;
     @Mock private SpringTemplateEngine templateEngine;
+    @Mock private UserRepository userRepository;
     @InjectMocks private EmailService emailService;
 
     @Mock private ValueOperations<String, String> valueOperations;
@@ -42,6 +44,7 @@ class EmailServiceTest {
     @DisplayName("이메일 전송 성공")
     void sendVerificationCode_AllValid_Success() {
         // given
+        when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(anyString(), any())).thenReturn("<html>content</html>");
@@ -63,6 +66,7 @@ class EmailServiceTest {
     @DisplayName("이메일 전송 실패 - 전송 오류")
     void SendVerificationCode_MailSendException_ThrowsException() {
         // given
+        when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(anyString(), any())).thenReturn("<html>content</html>");
@@ -80,6 +84,7 @@ class EmailServiceTest {
     @DisplayName("이메일 전송 실패 - 메시지 구성 오류")
     void SendVerificationCode_MessagingException_ThrowsException() throws Exception{
         // given
+        when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(mailSender.createMimeMessage()).thenAnswer(invocation -> {
             throw new MessagingException("build failed");
@@ -94,9 +99,24 @@ class EmailServiceTest {
     }
 
     @Test
+    @DisplayName("이메일 전송 실패 - 이미 가입된 이메일")
+    void SendVerificationCode_EmailAlreadyExists_ThrowsException() {
+        // given
+        when(userRepository.existsByEmail(request.email())).thenReturn(true);
+
+        // when
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> emailService.sendVerificationCode(request));
+
+        // then
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.EMAIL_ALREADY_EXISTS);
+    }
+
+    @Test
     @DisplayName("Redis 저장 실패 - Redis 연결 오류")
     void SendVerificationCode_RedisConnectionFailure_ThrowsException() {
         // given
+        when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         doThrow(new RedisConnectionFailureException("fail"))
                 .when(valueOperations).set(anyString(), anyString(), anyLong(), any(TimeUnit.class));
