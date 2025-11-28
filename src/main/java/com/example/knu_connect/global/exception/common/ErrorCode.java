@@ -45,7 +45,9 @@ public enum ErrorCode {
     // Networking
     INVALID_MAX_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_MAX_NUMBER", "네트워킹 최대 참여 한도가 현재 참여 수보다 작을 수 없습니다."),
     NETWORKING_FORBIDDEN(HttpStatus.FORBIDDEN, "NETWORKING_FORBIDDEN", "네트워킹 대표만이 사용 가능합니다."),
-    NETWORKING_NOT_FOUND(HttpStatus.NOT_FOUND, "NETWORKING_NOT_FOUND", "네트워킹을 찾을 수 없습니다.");
+    NETWORKING_NOT_FOUND(HttpStatus.NOT_FOUND, "NETWORKING_NOT_FOUND", "네트워킹을 찾을 수 없습니다."),
+    NETWORKING_FULL(HttpStatus.BAD_REQUEST, "NETWORKING_FULL", "모집 인원이 마감되었습니다."),
+    ALREADY_PARTICIPATED(HttpStatus.CONFLICT, "ALREADY_PARTICIPATED", "이미 참여 중인 네트워킹입니다.");
 
     public final HttpStatus status;
     public final String code;
