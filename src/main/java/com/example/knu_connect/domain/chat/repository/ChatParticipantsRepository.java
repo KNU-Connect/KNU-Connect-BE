@@ -26,4 +26,6 @@ public interface ChatParticipantsRepository extends JpaRepository<ChatParticipan
             "AND cp.user.id = :userId")
     Optional<ChatParticipants> findByUserIdAndChatRoomId(@Param("userId") Long userId,
                                                           @Param("chatRoomId") Long chatRoomId);
+
+    boolean existsByUser_IdAndChatRoom_Id(Long userId, Long chatRoomId);
 }

@@ -212,4 +212,28 @@ public class NetWorkingServiceImpl implements NetworkingService {
 
         return new ParticipantsResponseDto(participants);
     }
+
+    @Transactional
+    @Override
+    public void joinNetworking(User user, Long networkingId) {
+        Networking networking = networkingRepository.findById(networkingId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NETWORKING_NOT_FOUND));
+
+        ChatRoom chatRoom = networking.getChatRoom();
+
+        if (chatParticipantsRepository.existsByUser_IdAndChatRoom_Id(user.getId(), chatRoom.getId())) {
+            throw new BusinessException(ErrorCode.ALREADY_PARTICIPATED);
+        }
+
+        networking.join();
+
+        ChatParticipants newParticipant = ChatParticipants.builder()
+                .user(user)
+                .chatRoom(chatRoom)
+                .lastReadMessageId(0L)
+                .build();
+
+        chatParticipantsRepository.save(newParticipant);
+        chatRoom.addParticipant(newParticipant);
+    }
 }

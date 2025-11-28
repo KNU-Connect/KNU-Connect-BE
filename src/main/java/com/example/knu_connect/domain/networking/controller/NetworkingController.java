@@ -174,4 +174,25 @@ public class NetworkingController {
         ParticipantsResponseDto response = networkingService.getNetworkingParticipants(user, networkingId);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(
+            summary = "네트워킹 참여",
+            description = "특정 네트워킹에 참여합니다. 성공 시 해당 네트워킹의 채팅방에도 자동 초대됩니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "참여 성공"),
+            @ApiResponse(responseCode = "400", description = "인원 마감 또는 잘못된 요청", content = @Content),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+            @ApiResponse(responseCode = "404", description = "게시물을 찾을 수 없음", content = @Content),
+            @ApiResponse(responseCode = "409", description = "이미 참여 중인 네트워킹", content = @Content)
+    })
+    @Parameter(description = "네트워킹 ID", example = "1")
+    @PostMapping("/{networking_id}/participation")
+    public ResponseEntity<Void> joinNetworking(
+            @PathVariable("networking_id") Long networkingId,
+            @AuthUser User user
+    ) {
+        networkingService.joinNetworking(user, networkingId);
+        return ResponseEntity.ok().build();
+    }
 }

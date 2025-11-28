@@ -22,4 +22,6 @@ public interface NetworkingService {
     MyNetworkingListResponseDto getMyNetworkingList(User user, Pageable pageable);
 
     ParticipantsResponseDto getNetworkingParticipants(User user, Long networkingId);
+
+    void joinNetworking(User user, Long networkingId);
 }

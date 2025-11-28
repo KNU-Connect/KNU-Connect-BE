@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -147,6 +148,19 @@ public class GlobalExceptionHandler {
         ErrorCode code = ErrorCode.DUPLICATE_KEY;
         ErrorResponseDto body = ErrorResponseDto.of(code, code.message, Collections.emptyList(),
                 path(req));
+        return ResponseEntity.status(code.status).body(body);
+    }
+
+    // 잘못된 정렬 필드 요청 시 (Pageable sort 오류)
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ErrorResponseDto> handlePropertyReferenceException(
+            PropertyReferenceException ex, WebRequest req) {
+
+        String message = String.format("잘못된 정렬 기준입니다: '%s' 필드는 존재하지 않습니다.", ex.getPropertyName());
+
+        ErrorCode code = ErrorCode.INVALID_INPUT_VALUE;
+        ErrorResponseDto body = ErrorResponseDto.of(code, message, Collections.emptyList(), path(req));
+
         return ResponseEntity.status(code.status).body(body);
     }
 
