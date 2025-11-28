@@ -77,4 +77,11 @@ public class Networking extends CreatedTimeEntity {
         this.maxNumber = maxNumber;
     }
 
+    public void join() {
+        if (this.curNumber >= this.maxNumber) {
+            throw new BusinessException(ErrorCode.NETWORKING_FULL);
+        }
+        this.curNumber++;
+    }
+
 }

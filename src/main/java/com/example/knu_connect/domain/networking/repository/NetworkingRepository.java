@@ -20,4 +20,6 @@ public interface NetworkingRepository extends JpaRepository<Networking, Long> {
     // 내 네트워킹 조회
     @EntityGraph(attributePaths = {"chatRoom", "chatRoom.participants"})
     Page<Networking> findByUser(User user, Pageable pageable);
+
+    boolean existsByUserIdAndChatRoomId(Long userId, Long chatRoomId);
 }
