@@ -45,7 +45,7 @@ public class NetworkingController {
     @Parameter(description = "채팅방 ID (채팅방에서 네트워킹 생성 시)", example = "1")
     @PostMapping
     public ResponseEntity<Void> createNetworking(
-            @RequestParam(name = "chat_room_id") Long chatRoomId,
+            @RequestParam(name = "chat_room_id", required = false) Long chatRoomId,
             @Valid @RequestBody NetworkingCreateRequestDto request,
             @AuthUser User user
     ) {
