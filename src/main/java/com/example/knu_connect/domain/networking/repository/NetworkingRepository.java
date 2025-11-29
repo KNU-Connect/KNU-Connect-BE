@@ -12,15 +12,15 @@ import java.util.Optional;
 public interface NetworkingRepository extends JpaRepository<Networking, Long> {
 
     // ChatRoom과 Participants를 함께 로딩
-    @EntityGraph(attributePaths = {"chatRoom", "chatRoom.participants"})
+    @EntityGraph(attributePaths = {"chatRoom"})
     Page<Networking> findAll(Pageable pageable);
 
     // 키워드 검색 (제목 + 내용)
-    @EntityGraph(attributePaths = {"chatRoom", "chatRoom.participants"})
+    @EntityGraph(attributePaths = {"chatRoom"})
     Page<Networking> findByTitleContainingOrContentsContaining(String title, String contents, Pageable pageable);
 
     // 내 네트워킹 조회
-    @EntityGraph(attributePaths = {"chatRoom", "chatRoom.participants"})
+    @EntityGraph(attributePaths = {"chatRoom"})
     Page<Networking> findByUser(User user, Pageable pageable);
 
     boolean existsByUserIdAndChatRoomId(Long userId, Long chatRoomId);
