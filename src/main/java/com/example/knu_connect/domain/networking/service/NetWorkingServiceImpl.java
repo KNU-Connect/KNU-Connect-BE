@@ -91,7 +91,7 @@ public class NetWorkingServiceImpl implements NetworkingService {
         List<NetworkingListResponseDto.NetworkingBoardDto> boards = networkings.stream()
                 .map(n -> {
 
-                    int realParticipantCount = n.getChatRoom().getParticipants().size();
+                    int realParticipantCount = n.getCurNumber();
 
                     boolean isParticipating = n.getChatRoom().getParticipants().stream()
                             .anyMatch(p -> p.getUserId().equals(user.getId()));
@@ -123,7 +123,7 @@ public class NetWorkingServiceImpl implements NetworkingService {
 
         User representative = networking.getUser();
 
-        int realParticipantCount = networking.getChatRoom().getParticipants().size();
+        int realParticipantCount = networking.getCurNumber();
 
         boolean isParticipating = networking.getChatRoom().getParticipants().stream()
                 .anyMatch(p -> p.getUserId().equals(user.getId()));
