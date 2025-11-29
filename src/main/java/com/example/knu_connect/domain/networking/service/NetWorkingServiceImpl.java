@@ -93,12 +93,16 @@ public class NetWorkingServiceImpl implements NetworkingService {
 
                     int realParticipantCount = n.getChatRoom().getParticipants().size();
 
+                    boolean isParticipating = n.getChatRoom().getParticipants().stream()
+                            .anyMatch(p -> p.getUserId().equals(user.getId()));
+
                     return new NetworkingListResponseDto.NetworkingBoardDto(
                             n.getId(),
                             n.getTitle(),
                             n.getContents(),
                             realParticipantCount,
                             n.getMaxNumber(),
+                            isParticipating,
                             n.getCreatedAt()
                     );
                 })
@@ -121,6 +125,9 @@ public class NetWorkingServiceImpl implements NetworkingService {
 
         int realParticipantCount = networking.getChatRoom().getParticipants().size();
 
+        boolean isParticipating = networking.getChatRoom().getParticipants().stream()
+                .anyMatch(p -> p.getUserId().equals(user.getId()));
+
         NetworkingDetailResponseDto.RepresentativeDto representativeDto =
                 new NetworkingDetailResponseDto.RepresentativeDto(
                         representative.getName(),
@@ -138,6 +145,7 @@ public class NetWorkingServiceImpl implements NetworkingService {
                 networking.getContents(),
                 realParticipantCount,
                 networking.getMaxNumber(),
+                isParticipating,
                 networking.getCreatedAt(),
                 representativeDto
         );
