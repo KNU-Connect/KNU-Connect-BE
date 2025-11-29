@@ -4,6 +4,7 @@ import com.example.knu_connect.domain.chat.dto.request.ChatRoomCreateRequestDto;
 import com.example.knu_connect.domain.chat.dto.response.ChatMessageListResponseDto;
 import com.example.knu_connect.domain.chat.dto.response.ChatRoomCreateResponseDto;
 import com.example.knu_connect.domain.chat.dto.response.ChatRoomListResponseDto;
+import com.example.knu_connect.domain.chat.dto.response.ChatRoomParticipantResponseDto;
 import com.example.knu_connect.domain.chat.service.ChatService;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.global.annotation.AuthUser;
@@ -20,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "04. Chat", description = "채팅 API")
 @RestController
@@ -142,5 +145,29 @@ public class ChatController {
     ) {
         chatService.leaveChatRoom(user.getId(), chatRoomId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "채팅방 참여자 목록 조회",
+            description = "네트워킹 생성 시 대표자 선정을 위해 채팅방의 참여자 상세 목록을 조회합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = ChatRoomParticipantResponseDto.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한 없음(채팅방 참여자가 아님)", content = @Content),
+            @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음", content = @Content)
+    })
+    @Parameter(name = "chat_room_id", description = "채팅방 ID", example = "1")
+    @GetMapping("/{chat_room_id}/participants")
+    public ResponseEntity<List<ChatRoomParticipantResponseDto>> getChatRoomParticipants(
+            @AuthUser User user,
+            @PathVariable("chat_room_id") Long chatRoomId
+    ) {
+        List<ChatRoomParticipantResponseDto> response = chatService.getChatRoomParticipants(user.getId(), chatRoomId);
+        return ResponseEntity.ok(response);
     }
 }
