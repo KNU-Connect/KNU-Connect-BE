@@ -9,6 +9,8 @@ import com.example.knu_connect.domain.chat.dto.response.*;
 import com.example.knu_connect.domain.chat.repository.ChatMessageRepository;
 import com.example.knu_connect.domain.chat.repository.ChatParticipantsRepository;
 import com.example.knu_connect.domain.chat.repository.ChatRoomRepository;
+import com.example.knu_connect.domain.networking.entitiy.Networking;
+import com.example.knu_connect.domain.networking.repository.NetworkingRepository;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
@@ -37,6 +39,7 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final RedisChatManager redisChatManager;
+    private final NetworkingRepository networkingRepository;
 
     // 멘토 찾기에서 대화 시작 시 1대1 채팅방 생성
     @Override
@@ -260,9 +263,17 @@ public class ChatServiceImpl implements ChatService {
         // 참여자 삭제
         chatParticipantsRepository.deleteByUserIdAndChatRoomId(userId, chatRoomId);
 
+        networkingRepository.findByChatRoomId(chatRoomId)
+                .ifPresent(Networking::leave);
+
         // 참여자가 0명이면 채팅방 삭제
         Long participantCount = chatParticipantsRepository.countByChatRoomId(chatRoomId);
+
         if (participantCount == 0) {
+            networkingRepository.findByChatRoomId(chatRoomId)
+                    .ifPresent(networkingRepository::delete);
+
+            // 채팅방 삭제
             chatRoomRepository.delete(chatRoom);
         }
     }

@@ -21,6 +21,9 @@ public record NetworkingDetailResponseDto(
         @Schema(description = "최대 인원", example = "5")
         Integer maxNumber,
 
+        @Schema(description = "참여 여부", example = "false")
+        Boolean isParticipating,
+
         @Schema(description = "생성일시", example = "2024-01-15T10:30:00")
         LocalDateTime createdAt,
 

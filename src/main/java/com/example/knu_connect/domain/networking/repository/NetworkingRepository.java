@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface NetworkingRepository extends JpaRepository<Networking, Long> {
 
     // ChatRoom과 Participants를 함께 로딩
@@ -22,4 +24,6 @@ public interface NetworkingRepository extends JpaRepository<Networking, Long> {
     Page<Networking> findByUser(User user, Pageable pageable);
 
     boolean existsByUserIdAndChatRoomId(Long userId, Long chatRoomId);
+
+    Optional<Networking> findByChatRoomId(Long chatRoomId);
 }

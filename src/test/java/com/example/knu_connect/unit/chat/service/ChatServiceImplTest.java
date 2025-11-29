@@ -11,6 +11,8 @@ import com.example.knu_connect.domain.chat.repository.ChatParticipantsRepository
 import com.example.knu_connect.domain.chat.repository.ChatRoomRepository;
 import com.example.knu_connect.domain.chat.service.ChatServiceImpl;
 import com.example.knu_connect.domain.chat.service.RedisChatManager;
+import com.example.knu_connect.domain.networking.entitiy.Networking;
+import com.example.knu_connect.domain.networking.repository.NetworkingRepository;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
@@ -61,11 +63,15 @@ class ChatServiceImplTest {
     @Mock
     private RedisChatManager redisChatManager;
 
+    @Mock
+    private NetworkingRepository networkingRepository;
+
     private User user1;
     private User user2;
     private ChatRoom chatRoom;
     private ChatParticipants participant1;
     private ChatParticipants participant2;
+    private Networking networking;
 
     @BeforeEach
     void setUp() {
@@ -100,6 +106,17 @@ class ChatServiceImplTest {
 
         chatRoom.addParticipant(participant1);
         chatRoom.addParticipant(participant2);
+
+        networking = Networking.builder()
+                .title("Test Networking")
+                .contents("Contents")
+                .maxNumber(5)
+                .curNumber(2)
+                .user(user1)
+                .chatRoom(chatRoom)
+                .visible(true)
+                .build();
+        setId(networking, 1L);
     }
 
     // Reflection을 사용하여 ID 설정
@@ -510,6 +527,7 @@ class ChatServiceImplTest {
             Long chatRoomId = 1L;
 
             given(chatRoomRepository.findById(chatRoomId)).willReturn(Optional.of(chatRoom));
+            given(networkingRepository.findByChatRoomId(chatRoomId)).willReturn(Optional.of(networking));
             given(chatParticipantsRepository.countByChatRoomId(chatRoomId)).willReturn(1L);
 
             // when
@@ -518,6 +536,7 @@ class ChatServiceImplTest {
             // then
             verify(chatParticipantsRepository, times(1))
                     .deleteByUserIdAndChatRoomId(userId, chatRoomId);
+            assertThat(networking.getCurNumber()).isEqualTo(1);
         }
 
         @Test
@@ -527,12 +546,14 @@ class ChatServiceImplTest {
             Long chatRoomId = 1L;
 
             given(chatRoomRepository.findById(chatRoomId)).willReturn(Optional.of(chatRoom));
+            given(networkingRepository.findByChatRoomId(chatRoomId)).willReturn(Optional.of(networking));
             given(chatParticipantsRepository.countByChatRoomId(chatRoomId)).willReturn(0L);
 
             // when
             chatService.leaveChatRoom(userId, chatRoomId);
 
             // then
+            verify(networkingRepository, times(1)).delete(networking);
             verify(chatRoomRepository, times(1)).delete(chatRoom);
         }
     }

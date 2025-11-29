@@ -84,4 +84,10 @@ public class Networking extends CreatedTimeEntity {
         this.curNumber++;
     }
 
+    public void leave() {
+        if (this.curNumber > 0) {
+            this.curNumber--;
+        }
+    }
+
 }
