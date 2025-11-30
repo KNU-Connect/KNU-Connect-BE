@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -175,24 +176,22 @@ public class ChatServiceImpl implements ChatService {
         List<Long> chatRoomIds = chatRooms.stream()
                 .map(ChatRoom::getId)
                 .collect(Collectors.toList());
-        
-        log.debug("Chat room IDs: {}", chatRoomIds);
 
         List<ChatRoom> chatRoomsWithUsers = chatRoomRepository.findAllWithParticipantsAndUsers(chatRoomIds);
-        log.debug("Loaded {} chat rooms with participants and users", chatRoomsWithUsers.size());
 
         List<ChatRoomListResponseDto.ChatRoomInfo> chatRoomInfos = chatRoomsWithUsers.stream()
                 .map(chatRoom -> {
                     String title;
 
+                    // 네트워킹 채팅방인지 확인
                     Networking networking = networkingRepository.findByChatRoomId(chatRoom.getId())
                             .orElse(null);
 
                     if (networking != null) {
-                        // 네트워킹 채팅방인 경우
+                        // 네트워킹 채팅방인 경우: 네트워킹 제목 사용
                         title = networking.getTitle();
                     } else {
-                        // 멘토 채팅방인 경우 (1대1)
+                        // 멘토/일반 1:1 채팅방인 경우: 상대방 이름 사용
                         title = chatRoom.getParticipants().stream()
                                 .filter(p -> !p.getUserId().equals(userId))
                                 .map(p -> p.getUser().getName())
@@ -217,6 +216,7 @@ public class ChatServiceImpl implements ChatService {
                             recentMessage != null ? recentMessage.getCreatedAt() : chatRoom.getCreatedAt()
                     );
                 })
+                .sorted(Comparator.comparing(ChatRoomListResponseDto.ChatRoomInfo::recentDate).reversed())
                 .collect(Collectors.toList());
 
         return new ChatRoomListResponseDto(chatRoomInfos);
