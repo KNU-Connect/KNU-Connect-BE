@@ -11,6 +11,9 @@ public record ParticipantsResponseDto(
 ) {
     @Schema(description = "참여자 정보")
     public record ParticipantDto(
+            @Schema(description = "아이디", example = "1L")
+            Long id,
+
             @Schema(description = "이름", example = "홍길동")
             String name,
 

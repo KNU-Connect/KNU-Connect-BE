@@ -129,6 +129,7 @@ public class NetWorkingServiceImpl implements NetworkingService {
 
         NetworkingDetailResponseDto.RepresentativeDto representativeDto =
                 new NetworkingDetailResponseDto.RepresentativeDto(
+                        representative.getId(),
                         representative.getName(),
                         representative.getStatus().name(),
                         representative.getDepartment().name(),
@@ -206,6 +207,7 @@ public class NetWorkingServiceImpl implements NetworkingService {
                 .map(cp -> {
                     User participant = cp.getUser();
                     return new ParticipantsResponseDto.ParticipantDto(
+                            participant.getId(),
                             participant.getName(),
                             participant.getStatus().name(),
                             participant.getDepartment().name(),
