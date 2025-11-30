@@ -22,6 +22,7 @@ public class UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return new UserInfoResponseDto(
+                user.getId(),
                 user.getName(),
                 user.getStatus().name(),
                 user.getDepartment().name(),
