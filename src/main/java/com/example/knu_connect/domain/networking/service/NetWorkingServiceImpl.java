@@ -13,6 +13,7 @@ import com.example.knu_connect.domain.networking.dto.response.ParticipantsRespon
 import com.example.knu_connect.domain.networking.entitiy.Networking;
 import com.example.knu_connect.domain.networking.repository.NetworkingRepository;
 import com.example.knu_connect.domain.user.entity.User;
+import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -32,46 +33,44 @@ public class NetWorkingServiceImpl implements NetworkingService {
     private final NetworkingRepository networkingRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantsRepository chatParticipantsRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public void createNetworking(User user, NetworkingCreateRequestDto request, Long chatRoomId) {
-        User leader = user;
-        ChatRoom chatRoom;
+        User leader;
 
-        if (chatRoomId == null) {
-            chatRoom = ChatRoom.create();
-            chatRoom = chatRoomRepository.save(chatRoom);
+        ChatRoom newChatRoom = ChatRoom.create();
+        chatRoomRepository.save(newChatRoom);
 
-            ChatParticipants participants = ChatParticipants.builder()
-                    .chatRoom(chatRoom)
-                    .user(leader)
-                    .lastReadMessageId(0L)
-                    .build();
-            chatParticipantsRepository.save(participants);
+        if (chatRoomId != null) {
+            if (request.representativeId() == null) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "대표자 ID는 필수입니다.");
+            }
+            leader = userRepository.findById(request.representativeId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-            chatRoom.addParticipant(participants);
+            addParticipant(newChatRoom, leader);
+
+            if (!user.getId().equals(leader.getId())) {
+                addParticipant(newChatRoom, user);
+            }
 
         } else {
-            chatRoom = chatRoomRepository.findById(chatRoomId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
-
-            boolean isParticipant = chatRoom.getParticipants().stream()
-                    .anyMatch(p -> p.getUser().getId().equals(leader.getId()));
-
-            if (!isParticipant) {
-                throw new BusinessException(ErrorCode.CHAT_PARTICIPANTS_NOT_FOUND);
-            }
+            // [CASE 2] 네트워킹 페이지에서 생성: 본인이 대표자
+            leader = user;
+            addParticipant(newChatRoom, leader);
         }
 
+        // 3. 네트워킹 생성 및 새 채팅방과 연결
         Networking networking = Networking.builder()
                 .title(request.title())
                 .contents(request.contents())
                 .maxNumber(request.maxNumber())
                 .user(leader)
-                .chatRoom(chatRoom)
+                .chatRoom(newChatRoom) // 새로 만든 채팅방 연결
                 .visible(true)
-                .curNumber(chatRoom.getParticipants().size()) // 초기값 설정
+                .curNumber(newChatRoom.getParticipants().size())
                 .build();
 
         networkingRepository.save(networking);
@@ -235,13 +234,16 @@ public class NetWorkingServiceImpl implements NetworkingService {
 
         networking.join();
 
-        ChatParticipants newParticipant = ChatParticipants.builder()
-                .user(user)
+        addParticipant(chatRoom, user);
+    }
+
+    private void addParticipant(ChatRoom chatRoom, User user) {
+        ChatParticipants participant = ChatParticipants.builder()
                 .chatRoom(chatRoom)
+                .user(user)
                 .lastReadMessageId(0L)
                 .build();
-
-        chatParticipantsRepository.save(newParticipant);
-        chatRoom.addParticipant(newParticipant);
+        chatParticipantsRepository.save(participant);
+        chatRoom.addParticipant(participant);
     }
 }

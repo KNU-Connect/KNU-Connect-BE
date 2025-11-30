@@ -5,6 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "내 정보 조회 응답")
 public record UserInfoResponseDto(
+
+        @Schema(description = "아이디", example = "1L")
+        Long id,
+
         @Schema(description = "이름", example = "홍길동")
         String name,
 
