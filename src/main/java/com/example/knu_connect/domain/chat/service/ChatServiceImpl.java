@@ -165,56 +165,48 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public ChatRoomListResponseDto getChatRoomList(Long userId) {
-        log.debug("Fetching chat room list for user {}", userId);
-        
+
         List<ChatRoom> chatRooms = chatRoomRepository.findAllByUserId(userId);
-        log.debug("Found {} chat rooms for user {}", chatRooms.size(), userId);
-        
-        // 채팅방이 없으면 빈 리스트 반환
+
         if (chatRooms.isEmpty()) {
             return new ChatRoomListResponseDto(List.of());
         }
 
-        // 채팅방 ID 목록 추출
         List<Long> chatRoomIds = chatRooms.stream()
                 .map(ChatRoom::getId)
                 .collect(Collectors.toList());
         
         log.debug("Chat room IDs: {}", chatRoomIds);
 
-        // 참여자 정보를 User와 함께 조회
         List<ChatRoom> chatRoomsWithUsers = chatRoomRepository.findAllWithParticipantsAndUsers(chatRoomIds);
         log.debug("Loaded {} chat rooms with participants and users", chatRoomsWithUsers.size());
 
         List<ChatRoomListResponseDto.ChatRoomInfo> chatRoomInfos = chatRoomsWithUsers.stream()
                 .map(chatRoom -> {
-                    log.debug("Processing chat room ID: {}, participants count: {}", 
-                            chatRoom.getId(), chatRoom.getParticipants().size());
-                    
-                    // 상대방 이름들을 조회하여 ", "로 연결
-                    String title = chatRoom.getParticipants().stream()
-                            .filter(p -> {
-                                boolean isNotMe = !p.getUserId().equals(userId);
-                                log.debug("Participant user ID: {}, is not me: {}, user name: {}", 
-                                        p.getUserId(), isNotMe, p.getUser() != null ? p.getUser().getName() : "null");
-                                return isNotMe;
-                            })
-                            .map(p -> p.getUser().getName())
-                            .collect(Collectors.joining(", "));
-                    
-                    log.debug("Chat room {} title: {}", chatRoom.getId(), title);
-                    
-                    // 이름이 없으면 기본값
-                    if (title.isEmpty() || title.isBlank()) {
-                        title = "알 수 없음";
+                    String title;
+
+                    Networking networking = networkingRepository.findByChatRoomId(chatRoom.getId())
+                            .orElse(null);
+
+                    if (networking != null) {
+                        // 네트워킹 채팅방인 경우
+                        title = networking.getTitle();
+                    } else {
+                        // 멘토 채팅방인 경우 (1대1)
+                        title = chatRoom.getParticipants().stream()
+                                .filter(p -> !p.getUserId().equals(userId))
+                                .map(p -> p.getUser().getName())
+                                .collect(Collectors.joining(", "));
+
+                        if (title.isEmpty() || title.isBlank()) {
+                            title = "알 수 없음";
+                        }
                     }
 
-                    // 최근 메시지 가져오기
                     ChatMessage recentMessage = chatMessageRepository
                             .findFirstByChatRoomIdOrderByCreatedAtDesc(chatRoom.getId())
                             .orElse(null);
 
-                    // 안읽은 메시지 개수 계산
                     Long unreadCount = calculateUnreadCount(userId, chatRoom.getId());
 
                     return new ChatRoomListResponseDto.ChatRoomInfo(
