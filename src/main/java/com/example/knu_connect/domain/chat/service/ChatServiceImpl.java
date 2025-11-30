@@ -247,25 +247,20 @@ public class ChatServiceImpl implements ChatService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND));
 
-        // 사용자가 채팅방 참여자인지 확인
-        if (!chatRoom.hasParticipant(userId)) {
-            throw new BusinessException(ErrorCode.CHAT_PARTICIPANTS_NOT_FOUND);
-        }
+        ChatParticipants participantToRemove = chatRoom.getParticipants().stream()
+                .filter(p -> p.getUserId().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_PARTICIPANTS_NOT_FOUND));
 
-        // 참여자 삭제
-        chatParticipantsRepository.deleteByUserIdAndChatRoomId(userId, chatRoomId);
+        chatRoom.getParticipants().remove(participantToRemove);
 
         networkingRepository.findByChatRoomId(chatRoomId)
                 .ifPresent(Networking::leave);
 
-        // 참여자가 0명이면 채팅방 삭제
-        Long participantCount = chatParticipantsRepository.countByChatRoomId(chatRoomId);
-
-        if (participantCount == 0) {
+        if (chatRoom.getParticipants().isEmpty()) {
             networkingRepository.findByChatRoomId(chatRoomId)
                     .ifPresent(networkingRepository::delete);
 
-            // 채팅방 삭제
             chatRoomRepository.delete(chatRoom);
         }
     }
