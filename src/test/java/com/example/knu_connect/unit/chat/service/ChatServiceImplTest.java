@@ -150,7 +150,7 @@ class ChatServiceImplTest {
             given(userRepository.findById(userId)).willReturn(Optional.of(user1));
             given(chatRoomRepository.findByTwoParticipants(userId, participantId))
                     .willReturn(Optional.empty());
-            
+
             // save 호출 시 전달받은 chatRoom에 ID를 설정하고 반환
             given(chatRoomRepository.save(any(ChatRoom.class))).willAnswer(invocation -> {
                 ChatRoom savedRoom = invocation.getArgument(0);
@@ -228,7 +228,7 @@ class ChatServiceImplTest {
             given(chatRoomRepository.findById(chatRoomId)).willReturn(Optional.of(chatRoom));
             given(userRepository.findById(userId)).willReturn(Optional.of(user1));
             given(redisChatManager.isUserActive(chatRoomId, userId)).willReturn(false);
-            
+
             // save 호출 시 전달받은 message에 ID를 설정하고 반환
             given(chatMessageRepository.save(any(ChatMessage.class))).willAnswer(invocation -> {
                 ChatMessage savedMessage = invocation.getArgument(0);
@@ -521,38 +521,40 @@ class ChatServiceImplTest {
     class 채팅방_탈퇴_테스트 {
 
         @Test
-        void 채팅방_탈퇴() {
+        void 채팅방_탈퇴_시_참여자가_제거되고_네트워킹_인원이_감소한다() {
             // given
             Long userId = 1L;
             Long chatRoomId = 1L;
 
             given(chatRoomRepository.findById(chatRoomId)).willReturn(Optional.of(chatRoom));
             given(networkingRepository.findByChatRoomId(chatRoomId)).willReturn(Optional.of(networking));
-            given(chatParticipantsRepository.countByChatRoomId(chatRoomId)).willReturn(1L);
 
             // when
             chatService.leaveChatRoom(userId, chatRoomId);
 
             // then
-            verify(chatParticipantsRepository, times(1))
-                    .deleteByUserIdAndChatRoomId(userId, chatRoomId);
+            assertThat(chatRoom.getParticipants()).hasSize(1);
+            assertThat(chatRoom.getParticipants().get(0).getUserId()).isEqualTo(user2.getId());
             assertThat(networking.getCurNumber()).isEqualTo(1);
+            verify(chatRoomRepository, never()).delete(any(ChatRoom.class));
         }
 
         @Test
-        void 채팅방_참여자가_존재하지_않으면_채팅방_삭제() {
+        void 채팅방_마지막_참여자가_나가면_네트워킹과_채팅방이_삭제된다() {
             // given
             Long userId = 1L;
             Long chatRoomId = 1L;
 
+            chatRoom.getParticipants().removeIf(p -> p.getUserId().equals(user2.getId()));
+
             given(chatRoomRepository.findById(chatRoomId)).willReturn(Optional.of(chatRoom));
             given(networkingRepository.findByChatRoomId(chatRoomId)).willReturn(Optional.of(networking));
-            given(chatParticipantsRepository.countByChatRoomId(chatRoomId)).willReturn(0L);
 
             // when
             chatService.leaveChatRoom(userId, chatRoomId);
 
             // then
+            assertThat(chatRoom.getParticipants()).isEmpty();
             verify(networkingRepository, times(1)).delete(networking);
             verify(chatRoomRepository, times(1)).delete(chatRoom);
         }
