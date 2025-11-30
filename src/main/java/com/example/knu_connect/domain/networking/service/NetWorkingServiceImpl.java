@@ -39,7 +39,9 @@ public class NetWorkingServiceImpl implements NetworkingService {
     @Transactional
     public void createNetworking(User user, NetworkingCreateRequestDto request, Long chatRoomId) {
         User leader;
-        ChatRoom chatRoom;
+
+        ChatRoom newChatRoom = ChatRoom.create();
+        chatRoomRepository.save(newChatRoom);
 
         if (chatRoomId != null) {
             if (request.representativeId() == null) {
@@ -47,43 +49,28 @@ public class NetWorkingServiceImpl implements NetworkingService {
             }
             leader = userRepository.findById(request.representativeId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        } else {
-            leader = user;
-        }
 
-        if (chatRoomId == null) {
-            chatRoom = ChatRoom.create();
-            chatRoom = chatRoomRepository.save(chatRoom);
+            addParticipant(newChatRoom, leader);
 
-            ChatParticipants participants = ChatParticipants.builder()
-                    .chatRoom(chatRoom)
-                    .user(leader)
-                    .lastReadMessageId(0L)
-                    .build();
-            chatParticipantsRepository.save(participants);
-
-            chatRoom.addParticipant(participants);
-
-        } else {
-            chatRoom = chatRoomRepository.findById(chatRoomId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
-
-            boolean isParticipant = chatRoom.getParticipants().stream()
-                    .anyMatch(p -> p.getUser().getId().equals(leader.getId()));
-
-            if (!isParticipant) {
-                throw new BusinessException(ErrorCode.CHAT_PARTICIPANTS_NOT_FOUND, "지정된 대표자가 채팅방에 참여하고 있지 않습니다.");
+            if (!user.getId().equals(leader.getId())) {
+                addParticipant(newChatRoom, user);
             }
+
+        } else {
+            // [CASE 2] 네트워킹 페이지에서 생성: 본인이 대표자
+            leader = user;
+            addParticipant(newChatRoom, leader);
         }
 
+        // 3. 네트워킹 생성 및 새 채팅방과 연결
         Networking networking = Networking.builder()
                 .title(request.title())
                 .contents(request.contents())
                 .maxNumber(request.maxNumber())
                 .user(leader)
-                .chatRoom(chatRoom)
+                .chatRoom(newChatRoom) // 새로 만든 채팅방 연결
                 .visible(true)
-                .curNumber(chatRoom.getParticipants().size())
+                .curNumber(newChatRoom.getParticipants().size())
                 .build();
 
         networkingRepository.save(networking);
@@ -247,13 +234,16 @@ public class NetWorkingServiceImpl implements NetworkingService {
 
         networking.join();
 
-        ChatParticipants newParticipant = ChatParticipants.builder()
-                .user(user)
+        addParticipant(chatRoom, user);
+    }
+
+    private void addParticipant(ChatRoom chatRoom, User user) {
+        ChatParticipants participant = ChatParticipants.builder()
                 .chatRoom(chatRoom)
+                .user(user)
                 .lastReadMessageId(0L)
                 .build();
-
-        chatParticipantsRepository.save(newParticipant);
-        chatRoom.addParticipant(newParticipant);
+        chatParticipantsRepository.save(participant);
+        chatRoom.addParticipant(participant);
     }
 }

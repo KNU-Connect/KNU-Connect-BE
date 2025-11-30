@@ -23,6 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -129,22 +130,39 @@ class NetworkingServiceImplTest {
         }
 
         @Test
-        void 채방방에서_생성() {
+        @DisplayName("채팅방에서 생성 시 - 새로운 채팅방이 생성되고 대표자와 본인이 참여해야 한다")
+        void createNetworking_FromChatRoom_CreatesNewRoom() {
             // given
-            Long chatRoomId = 1L;
-            Long representativeId = 1L;
+            Long existingChatRoomId = 1L;
+            Long representativeId = 2L;
+
+            User mentor = User.builder().email("mentor@test.com").build();
+            setId(mentor, representativeId);
+
             NetworkingCreateRequestDto request = new NetworkingCreateRequestDto(
                     "Title", "Contents", 5, representativeId
             );
 
-            given(userRepository.findById(representativeId)).willReturn(Optional.of(user));
-            given(chatRoomRepository.findById(chatRoomId)).willReturn(Optional.of(chatRoom));
+            ChatRoom newChatRoom = ChatRoom.create();
+            given(chatRoomRepository.save(any(ChatRoom.class))).willReturn(newChatRoom);
+            given(userRepository.findById(representativeId)).willReturn(Optional.of(mentor));
 
             // when
-            networkingService.createNetworking(user, request, chatRoomId);
+            networkingService.createNetworking(user, request, existingChatRoomId);
 
             // then
-            verify(networkingRepository).save(any(Networking.class));
+            verify(chatRoomRepository).save(any(ChatRoom.class));
+
+            verify(chatParticipantsRepository, times(2)).save(any(ChatParticipants.class));
+
+            ArgumentCaptor<Networking> networkingCaptor = ArgumentCaptor.forClass(Networking.class);
+            verify(networkingRepository).save(networkingCaptor.capture());
+
+            Networking savedNetworking = networkingCaptor.getValue();
+
+            assertThat(savedNetworking.getChatRoom()).isEqualTo(newChatRoom);
+            assertThat(savedNetworking.getChatRoom().getId()).isNotEqualTo(existingChatRoomId);
+            assertThat(savedNetworking.getUser()).isEqualTo(mentor);
         }
     }
 

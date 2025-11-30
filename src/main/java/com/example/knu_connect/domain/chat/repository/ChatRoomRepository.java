@@ -27,7 +27,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "JOIN cr.participants p2 " +
             "WHERE p1.user.id = :userId1 " +
             "AND p2.user.id = :userId2 " +
-            "AND p1.chatRoom = p2.chatRoom")
-    Optional<ChatRoom> findByTwoParticipants(@Param("userId1") Long userId1, 
-                                              @Param("userId2") Long userId2);
+            "AND p1.chatRoom = p2.chatRoom " +
+            "AND NOT EXISTS (SELECT n FROM Networking n WHERE n.chatRoom = cr)") // 이 조건이 핵심
+    Optional<ChatRoom> findByTwoParticipants(@Param("userId1") Long userId1,
+                                             @Param("userId2") Long userId2);
 }
