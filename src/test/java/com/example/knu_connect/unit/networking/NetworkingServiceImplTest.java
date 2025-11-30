@@ -143,15 +143,15 @@ class NetworkingServiceImplTest {
                     "Title", "Contents", 5, representativeId
             );
 
-            ChatRoom newChatRoom = ChatRoom.create();
-            given(chatRoomRepository.save(any(ChatRoom.class))).willReturn(newChatRoom);
             given(userRepository.findById(representativeId)).willReturn(Optional.of(mentor));
 
             // when
             networkingService.createNetworking(user, request, existingChatRoomId);
 
             // then
-            verify(chatRoomRepository).save(any(ChatRoom.class));
+            ArgumentCaptor<ChatRoom> chatRoomCaptor = ArgumentCaptor.forClass(ChatRoom.class);
+            verify(chatRoomRepository).save(chatRoomCaptor.capture());
+            ChatRoom createdChatRoom = chatRoomCaptor.getValue(); // 캡처된 실제 객체
 
             verify(chatParticipantsRepository, times(2)).save(any(ChatParticipants.class));
 
@@ -160,12 +160,12 @@ class NetworkingServiceImplTest {
 
             Networking savedNetworking = networkingCaptor.getValue();
 
-            assertThat(savedNetworking.getChatRoom()).isEqualTo(newChatRoom);
+            assertThat(savedNetworking.getChatRoom()).isEqualTo(createdChatRoom);
             assertThat(savedNetworking.getChatRoom().getId()).isNotEqualTo(existingChatRoomId);
             assertThat(savedNetworking.getUser()).isEqualTo(mentor);
         }
     }
-
+    
     @Nested
     class 네트워킹_목록조회_테스트 {
 
