@@ -1,9 +1,6 @@
 package com.example.knu_connect.domain.chat.dto.response;
 
-import com.example.knu_connect.domain.user.entity.enums.Career;
-import com.example.knu_connect.domain.user.entity.enums.Department;
-import com.example.knu_connect.domain.user.entity.enums.Interest;
-import com.example.knu_connect.domain.user.entity.enums.Mbti;
+import com.example.knu_connect.domain.user.entity.enums.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record ChatRoomParticipantResponseDto(
@@ -14,7 +11,10 @@ public record ChatRoomParticipantResponseDto(
         @Schema(description = "이름", example = "홍길동")
         String name,
 
-        @Schema(description = "학과", example = "CSE")
+        @Schema(description = "분류", example = "student")
+        Status status,
+
+        @Schema(description = "학과", example = "computer")
         Department department,
 
         @Schema(description = "진로", example = "BACKEND")

@@ -353,6 +353,7 @@ public class ChatServiceImpl implements ChatService {
                     return new ChatRoomParticipantResponseDto(
                             user.getId(),
                             user.getName(),
+                            user.getStatus(),
                             user.getDepartment(),
                             user.getCareer(),
                             user.getInterest(),
