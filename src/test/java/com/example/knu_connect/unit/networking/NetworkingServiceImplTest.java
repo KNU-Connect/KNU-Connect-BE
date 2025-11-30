@@ -244,11 +244,20 @@ class NetworkingServiceImplTest {
         void update_Success() {
             // given
             Long networkingId = 1L;
+            Long newRepresentativeId = 2L;
+
+            User newRepresentative = User.builder()
+                    .name("New Leader")
+                    .email("new@test.com")
+                    .build();
+            setId(newRepresentative, newRepresentativeId);
+
             NetworkingUpdateRequestDto request = new NetworkingUpdateRequestDto(
-                    "Updated Title", "Updated Contents", 10, 1L
+                    "Updated Title", "Updated Contents", 10, newRepresentativeId
             );
 
             given(networkingRepository.findById(networkingId)).willReturn(Optional.of(networking));
+            given(userRepository.findById(newRepresentativeId)).willReturn(Optional.of(newRepresentative));
 
             // when
             networkingService.updateNetworking(user, request, networkingId);
@@ -257,6 +266,7 @@ class NetworkingServiceImplTest {
             assertThat(networking.getTitle()).isEqualTo("Updated Title");
             assertThat(networking.getContents()).isEqualTo("Updated Contents");
             assertThat(networking.getMaxNumber()).isEqualTo(10);
+            assertThat(networking.getUser()).isEqualTo(newRepresentative);
         }
 
         @Test

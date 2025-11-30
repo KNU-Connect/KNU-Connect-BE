@@ -67,14 +67,17 @@ public class Networking extends CreatedTimeEntity {
         this.visible = visible;
     }
 
-    public void update(String title, String contents, Integer maxNumber)
-    {
+    public void update(String title, String contents, Integer maxNumber, User user) { // User 파라미터 추가
         this.title = title;
         this.contents = contents;
 
         if (maxNumber < this.curNumber)
             throw new BusinessException(ErrorCode.INVALID_MAX_NUMBER);
         this.maxNumber = maxNumber;
+
+        if (user != null) {
+            this.user = user;
+        }
     }
 
     public void join() {
