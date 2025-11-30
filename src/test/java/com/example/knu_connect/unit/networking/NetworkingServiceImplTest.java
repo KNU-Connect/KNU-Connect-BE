@@ -42,7 +42,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class NetWorkingServiceImplTest {
+class NetworkingServiceImplTest {
 
     @InjectMocks
     private NetWorkingServiceImpl networkingService;
@@ -132,10 +132,12 @@ class NetWorkingServiceImplTest {
         void 채방방에서_생성() {
             // given
             Long chatRoomId = 1L;
+            Long representativeId = 1L;
             NetworkingCreateRequestDto request = new NetworkingCreateRequestDto(
-                    "Title", "Contents", 5, null
+                    "Title", "Contents", 5, representativeId
             );
 
+            given(userRepository.findById(representativeId)).willReturn(Optional.of(user));
             given(chatRoomRepository.findById(chatRoomId)).willReturn(Optional.of(chatRoom));
 
             // when

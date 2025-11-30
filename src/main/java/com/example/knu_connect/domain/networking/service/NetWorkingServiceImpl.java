@@ -13,6 +13,7 @@ import com.example.knu_connect.domain.networking.dto.response.ParticipantsRespon
 import com.example.knu_connect.domain.networking.entitiy.Networking;
 import com.example.knu_connect.domain.networking.repository.NetworkingRepository;
 import com.example.knu_connect.domain.user.entity.User;
+import com.example.knu_connect.domain.user.repository.UserRepository;
 import com.example.knu_connect.global.exception.common.BusinessException;
 import com.example.knu_connect.global.exception.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +33,23 @@ public class NetWorkingServiceImpl implements NetworkingService {
     private final NetworkingRepository networkingRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatParticipantsRepository chatParticipantsRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public void createNetworking(User user, NetworkingCreateRequestDto request, Long chatRoomId) {
-        User leader = user;
+        User leader;
         ChatRoom chatRoom;
+
+        if (chatRoomId != null) {
+            if (request.representativeId() == null) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "대표자 ID는 필수입니다.");
+            }
+            leader = userRepository.findById(request.representativeId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        } else {
+            leader = user;
+        }
 
         if (chatRoomId == null) {
             chatRoom = ChatRoom.create();
@@ -60,7 +72,7 @@ public class NetWorkingServiceImpl implements NetworkingService {
                     .anyMatch(p -> p.getUser().getId().equals(leader.getId()));
 
             if (!isParticipant) {
-                throw new BusinessException(ErrorCode.CHAT_PARTICIPANTS_NOT_FOUND);
+                throw new BusinessException(ErrorCode.CHAT_PARTICIPANTS_NOT_FOUND, "지정된 대표자가 채팅방에 참여하고 있지 않습니다.");
             }
         }
 
@@ -71,7 +83,7 @@ public class NetWorkingServiceImpl implements NetworkingService {
                 .user(leader)
                 .chatRoom(chatRoom)
                 .visible(true)
-                .curNumber(chatRoom.getParticipants().size()) // 초기값 설정
+                .curNumber(chatRoom.getParticipants().size())
                 .build();
 
         networkingRepository.save(networking);
