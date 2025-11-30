@@ -161,10 +161,14 @@ public class NetWorkingServiceImpl implements NetworkingService {
             throw new BusinessException(ErrorCode.NETWORKING_FORBIDDEN);
         }
 
+        User newRepresentative = userRepository.findById(request.representativeId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
         networking.update(
                 request.title(),
                 request.contents(),
-                request.maxNumber()
+                request.maxNumber(),
+                newRepresentative
         );
     }
 
