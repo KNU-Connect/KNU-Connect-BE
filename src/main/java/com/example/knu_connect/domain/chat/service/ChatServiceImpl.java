@@ -363,6 +363,29 @@ public class ChatServiceImpl implements ChatService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public ChatRoomTypeResponseDto getChatRoomType(Long userId, Long chatRoomId) {
+
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        if (!chatRoom.hasParticipant(userId)) {
+            throw new BusinessException(ErrorCode.CHAT_PARTICIPANTS_NOT_FOUND);
+        }
+
+        return networkingRepository.findByChatRoomId(chatRoomId)
+                .map(networking -> new ChatRoomTypeResponseDto(
+                        true,
+                        networking.getId(),
+                        networking.getTitle()
+                ))
+                .orElseGet(() -> new ChatRoomTypeResponseDto(
+                        false,
+                        null,
+                        null
+                ));
+    }
+
     // ========== Private Helper Methods ==========
 
     // 안읽은 메시지 수 계산

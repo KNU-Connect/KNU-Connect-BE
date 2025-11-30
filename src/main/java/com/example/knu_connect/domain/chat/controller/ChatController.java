@@ -1,10 +1,7 @@
 package com.example.knu_connect.domain.chat.controller;
 
 import com.example.knu_connect.domain.chat.dto.request.ChatRoomCreateRequestDto;
-import com.example.knu_connect.domain.chat.dto.response.ChatMessageListResponseDto;
-import com.example.knu_connect.domain.chat.dto.response.ChatRoomCreateResponseDto;
-import com.example.knu_connect.domain.chat.dto.response.ChatRoomListResponseDto;
-import com.example.knu_connect.domain.chat.dto.response.ChatRoomParticipantResponseDto;
+import com.example.knu_connect.domain.chat.dto.response.*;
 import com.example.knu_connect.domain.chat.service.ChatService;
 import com.example.knu_connect.domain.user.entity.User;
 import com.example.knu_connect.global.annotation.AuthUser;
@@ -168,6 +165,30 @@ public class ChatController {
             @PathVariable("chat_room_id") Long chatRoomId
     ) {
         List<ChatRoomParticipantResponseDto> response = chatService.getChatRoomParticipants(user.getId(), chatRoomId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "채팅방 타입 확인",
+            description = "해당 채팅방이 네트워킹 채팅방인지 1:1 멘토링 채팅방인지 확인합니다."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = ChatRoomTypeResponseDto.class))
+            ),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+            @ApiResponse(responseCode = "403", description = "권한 없음(참여자가 아님)", content = @Content),
+            @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음", content = @Content)
+    })
+    @Parameter(name = "chat_room_id", description = "채팅방 ID", example = "1")
+    @GetMapping("/{chat_room_id}/type")
+    public ResponseEntity<ChatRoomTypeResponseDto> getChatRoomType(
+            @AuthUser User user,
+            @PathVariable("chat_room_id") Long chatRoomId
+    ) {
+        ChatRoomTypeResponseDto response = chatService.getChatRoomType(user.getId(), chatRoomId);
         return ResponseEntity.ok(response);
     }
 }

@@ -27,4 +27,6 @@ public interface ChatService {
     void refreshChatRoom(Long userId, Long chatRoomId);
 
     List<ChatRoomParticipantResponseDto> getChatRoomParticipants(Long userId, Long chatRoomId);
+
+    ChatRoomTypeResponseDto getChatRoomType(Long userId, Long chatRoomId);
 }
