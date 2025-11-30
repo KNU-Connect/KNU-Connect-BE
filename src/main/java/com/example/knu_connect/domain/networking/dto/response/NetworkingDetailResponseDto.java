@@ -32,6 +32,10 @@ public record NetworkingDetailResponseDto(
 ) {
     @Schema(description = "대표자 정보")
     public record RepresentativeDto(
+
+            @Schema(description = "아이디", example = "1L")
+            Long id,
+
             @Schema(description = "이름", example = "홍길동")
             String name,
 
