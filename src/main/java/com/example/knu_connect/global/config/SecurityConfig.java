@@ -57,7 +57,7 @@ public class SecurityConfig {
                 "http://knu-connect.s3-website.ap-northeast-2.amazonaws.com",
                 "http://localhost:3000",
                 "https://knu-connect-fe.vercel.app",
-                "http://localhost:5673"
+                "http://localhost:5173"
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
